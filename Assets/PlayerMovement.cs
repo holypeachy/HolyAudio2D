@@ -17,18 +17,18 @@ public class PlayerMovement : MonoBehaviour
 	public bool canMove = true;
 	
 	
-	// Start is called before the first frame update
 	void Start()
 	{
 		Rigid = GetComponent<Rigidbody2D>();
 		SpriteR = GetComponent<SpriteRenderer>();
 	}
 
-	// Update is called once per frame
+
 	void Update()
 	{
 		SpriteFlipCheck();
 	}
+	
 	
 	private void FixedUpdate() {
 		// Movement		
@@ -45,6 +45,7 @@ public class PlayerMovement : MonoBehaviour
 		}
 	}
 
+
 	private void SpriteFlipCheck()
 	{
 		if (Movement.x < 0)
@@ -57,6 +58,7 @@ public class PlayerMovement : MonoBehaviour
 
 		}
 	}
+
 
 	public void OnMove(InputAction.CallbackContext context)
 	{
