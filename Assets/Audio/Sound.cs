@@ -5,14 +5,15 @@ using UnityEngine.Audio;
 
 [System.Serializable]
 public class Sound
-{
-	[HideInInspector] public AudioSource Source;
-	
+{	
+	// Basic Info
 	public string ClipName;
+	[HideInInspector] public AudioSource Source;
 	public AudioMixerGroup MixerGroup;
 	public AudioClip AudioFile;
 	
 
+	// Options
 	public bool BypassEffects = false;
 	public bool BypassListenerEffects = false;
 	public bool BypassReverbZones = false;
@@ -41,13 +42,13 @@ public class Sound
 	public float ReverbZoneMix = 1f;
 
 	[Range(0f, 5f)]
-	public float DopplerLevel = 1f;
+	public float DopplerLevel = 0f;
 
 	[Range(0, 360)]
 	public int Spread = 0;
 	
 	public AudioRolloffMode VolumeRolloff = AudioRolloffMode.Logarithmic;
 	
-	public float MinDistance = 1f;
+	public float MinDistance = 0f;
 	public float MaxDistance = 500f;
 }
