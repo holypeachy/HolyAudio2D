@@ -349,10 +349,10 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 1
-  MinDistance: 0
-  MaxDistance: 495.21
+  MinDistance: 1
+  MaxDistance: 500
   Pan2D: 0
-  rolloffMode: 1
+  rolloffMode: 2
   BypassEffects: 0
   BypassListenerEffects: 0
   BypassReverbZones: 0
@@ -772,8 +772,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   Sounds: []
-  Mixers: []
-  MixerGroups: []
+  Mixers:
+  - {fileID: 24100000, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
+  MixerGroups:
+  - {fileID: 3156385425310214127, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
+  - {fileID: 9197093663670908674, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
+  - {fileID: -4541444653638012970, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
+  - {fileID: -3249060065348300228, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
 --- !u!4 &1478122663
 Transform:
   m_ObjectHideFlags: 0
@@ -781,9 +786,9 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1478122661}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.042798318, y: -0.0631344, z: -0.02594148}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 0.1, y: 0.1, z: 0.1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
