@@ -25,6 +25,7 @@ public class AudioManager : MonoBehaviour
 	private bool HasStoppedSourceSound = false;
 	
 	// Sounds and Mixers
+	[SerializeField] private AudioMixer[] Mixers;
 	[SerializeField] private AudioMixerGroup[] MixerGroups;
 	[SerializeField] private Sound[] Sounds;
 	[SerializeField] private SourceSound[] SourceSounds;
@@ -393,56 +394,137 @@ public class AudioManager : MonoBehaviour
 	}
 
 	
+	// public void SaveSettings()
+	// {
+	// 	if(AreMixersSetupProperly)
+	// 	{
+	// 		float[] RawGroupVolumes = new float[MixerGroups.Length + 1];
+	// 		float[] RawMasterVolumes = new float[Mixers.Length];
+			
+	// 		for (int i = 0; i < MixerGroups.Length; i++)
+	// 		{
+	// 			MixerGroups[i].audioMixer.GetFloat(MixerGroups[i].name + "Volume", out RawGroupVolumes[i]);
+	// 			if(EnableDebug)
+	// 			{
+	// 				Debug.Log("AudioManager|SaveSettings: " + MixerGroups[i].name + "Volume" + RawGroupVolumes[i]);
+	// 			}
+	// 		}
+			
+	// 		MixerGroups[0].audioMixer.GetFloat("MasterVolume", out RawGroupVolumes[MixerGroups.Length]);
+	// 		if(EnableDebug)
+	// 		{
+	// 			Debug.Log("AudioManager|SaveSettings: " + "MasterVolume" + " " + RawGroupVolumes[MixerGroups.Length]);
+	// 		}
+
+	// 		AudioData data = new AudioData();
+	// 		data.Volumes = RawGroupVolumes;
+		
+	// 		AudioMSave.SaveData(data);
+	// 	}
+
+	// }
+
 	public void SaveSettings()
 	{
-		if(AreMixersSetupProperly)
+		if (AreMixersSetupProperly)
 		{
-			float[] RawVolumeLevels = new float[MixerGroups.Length + 1];
-			
-			for (int i = 0; i < MixerGroups.Length; i++)
+			float[] RawMasterVolumes = new float[Mixers.Length];
+			float[] RawGroupVolumes = new float[MixerGroups.Length];
+
+			for (int i = 0; i < Mixers.Length; i++)
 			{
-				MixerGroups[i].audioMixer.GetFloat(MixerGroups[i].name + "Volume", out RawVolumeLevels[i]);
-				if(EnableDebug)
+				Mixers[i].GetFloat("MasterVolume", out RawMasterVolumes[i]);
+				if (EnableDebug)
 				{
-					Debug.Log("AudioManager|SaveSettings: " + MixerGroups[i].name + "Volume" + RawVolumeLevels[i]);
+					Debug.Log("AudioManager|SaveSettings: " + Mixers[i].name + "'s MasterVolume is " + RawMasterVolumes[i]);
 				}
 			}
 			
-			MixerGroups[0].audioMixer.GetFloat("MasterVolume", out RawVolumeLevels[MixerGroups.Length]);
-			if(EnableDebug)
+			for (int i = 0; i < MixerGroups.Length; i++)
 			{
-				Debug.Log("AudioManager|SaveSettings: " + "MasterVolume" + " " + RawVolumeLevels[MixerGroups.Length]);
+				MixerGroups[i].audioMixer.GetFloat(MixerGroups[i].name + "Volume", out RawGroupVolumes[i]);
+				if (EnableDebug)
+				{
+					Debug.Log("AudioManager|SaveSettings: " + MixerGroups[i].audioMixer.name + "'s -> " + MixerGroups[i].name + "Volume is " + RawGroupVolumes[i]);
+				}
 			}
 
 			AudioData data = new AudioData();
-			data.Volumes = RawVolumeLevels;
-		
+			data.MasterVolumes = RawMasterVolumes;
+			data.GroupVolumes = RawGroupVolumes;
+
 			AudioMSave.SaveData(data);
 		}
 
 	}
 	
 	
+	// public void LoadSettings()
+	// {
+	// 	if(AreMixersSetupProperly)
+	// 	{
+	// 		AudioData data =  AudioMSave.LoadData();
+	
+	// 		if(data.Volumes.Length == MixerGroups.Length + 1)
+	// 		{
+	// 			for (int i = 0; i < MixerGroups.Length; i++)
+	// 			{
+	// 				MixerGroups[i].audioMixer.SetFloat(MixerGroups[i].name + "Volume", data.Volumes[i]);
+	// 				Debug.Log("AudioManager|LoadSettings: " + MixerGroups[i].name + "Volume" + data.Volumes[i]);
+	// 			}
+	// 			MixerGroups[0].audioMixer.SetFloat("MasterVolume", data.Volumes[data.Volumes.Length - 1]);
+	// 			Debug.Log("AudioManager|LoadSettings: " + "MasterVolume " + data.Volumes[data.Volumes.Length - 1]);
+	// 		}
+	// 		else
+	// 		{
+	// 			Debug.LogError("AudioManager|LoadSettings: The number of Mixers and data points saved do not match!");
+	// 			return;
+	// 		}
+	// 	}
+	// }
+
 	public void LoadSettings()
 	{
-		if(AreMixersSetupProperly)
+		if (AreMixersSetupProperly)
 		{
-			AudioData data =  AudioMSave.LoadData();
-	
-			if(data.Volumes.Length == MixerGroups.Length + 1)
+			AudioData data = AudioMSave.LoadData();
+
+			if(data == null)
 			{
-				for (int i = 0; i < MixerGroups.Length; i++)
+				Debug.LogError("AudioManager|LoadSettings: AudioData saved file not found!");
+				return;
+			}
+
+			if (data.MasterVolumes.Length == Mixers.Length)
+			{
+				for (int i = 0; i < Mixers.Length; i++)
 				{
-					MixerGroups[i].audioMixer.SetFloat(MixerGroups[i].name + "Volume", data.Volumes[i]);
-					Debug.Log("AudioManager|LoadSettings: " + MixerGroups[i].name + "Volume" + data.Volumes[i]);
+					Mixers[i].SetFloat("MasterVolume", data.MasterVolumes[i]);
+					if(EnableDebug)
+					{
+						Debug.Log("AudioManager|LoadSettings: " + Mixers[i].name + "'s MasterVolume is " + data.MasterVolumes[i]);
+					}
 				}
-				MixerGroups[0].audioMixer.SetFloat("MasterVolume", data.Volumes[data.Volumes.Length - 1]);
-				Debug.Log("AudioManager|LoadSettings: " + "MasterVolume " + data.Volumes[data.Volumes.Length - 1]);
 			}
 			else
 			{
-				Debug.LogError("AudioManager|LoadSettings: The number of Mixers and data points saved do not match!");
-				return;
+				Debug.LogError("AudioManager|LoadSettings: The number of Mixers (MasterVolume) and data points saved do not match!");
+			}
+			
+			if(data.GroupVolumes.Length == MixerGroups.Length)
+			{
+				for (int i = 0; i < MixerGroups.Length; i++)
+				{
+					MixerGroups[i].audioMixer.SetFloat(MixerGroups[i].name + "Volume", data.GroupVolumes[i]);
+					if(EnableDebug)
+					{
+						Debug.Log("AudioManager|LoadSettings: " + MixerGroups[i].audioMixer.name + "'s -> "  + MixerGroups[i].name + "Volume " + data.GroupVolumes[i]);	
+					}
+				}
+			}
+			else
+			{
+				Debug.LogError("AudioManager|LoadSettings: The number of MixerGroups and data points saved do not match!");
 			}
 		}
 	}
@@ -460,5 +542,10 @@ public class AudioManager : MonoBehaviour
 [System.Serializable]
 public class AudioData
 {
-	public float[] Volumes{set; get;}
+	// public float[] Volumes{set; get;}
+	
+	public float[] MasterVolumes{get; set;}
+	public float[] GroupVolumes{get; set;}
+	
+	private string EasterEgg = "Thanks for hacking my game!";
 }

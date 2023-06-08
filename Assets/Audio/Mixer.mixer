@@ -35,7 +35,7 @@ AudioMixerController:
   - guid: b93d3cb58374df445949fe74b230d3ab
     name: MusicVolume
   - guid: 2e054182c5c1ec84585ca8ce370817f1
-    name: PlayerEffectsVolume
+    name: EffectsVolume
   m_AudioMixerGroupViews:
   - guids:
     - 44a87c8ac5048b24ca0563222593f28f
@@ -89,9 +89,9 @@ AudioMixerSnapshotController:
   m_AudioMixer: {fileID: 24100000}
   m_SnapshotID: 607f9c97be450d04c8bb42de23672695
   m_FloatValues:
-    2e054182c5c1ec84585ca8ce370817f1: -0.00389307
-    5e1d13b25c959c8459e4a7966cfd20ec: 0.23288241
-    b93d3cb58374df445949fe74b230d3ab: 0.23288241
+    2e054182c5c1ec84585ca8ce370817f1: 0
+    5e1d13b25c959c8459e4a7966cfd20ec: 0
+    b93d3cb58374df445949fe74b230d3ab: 0
   m_TransitionOverrides: {}
 --- !u!243 &3156385425310214127
 AudioMixerGroupController:
@@ -132,7 +132,7 @@ AudioMixerGroupController:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PlayerEffects
+  m_Name: Effects
   m_AudioMixer: {fileID: 24100000}
   m_GroupID: 6a6c7d13e9ae28e4f900f1f0032d6b50
   m_Children: []
