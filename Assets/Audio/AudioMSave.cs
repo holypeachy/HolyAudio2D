@@ -8,16 +8,16 @@ public static class AudioMSave
 {
 	private static string filePath = "/AudioSettings.bin";
 	
-	public static void SaveData(AudioData AudioData)
+	public static void SaveData(AudioData Data)
 	{
 		BinaryFormatter formatter = new BinaryFormatter();
 		string path = Application.persistentDataPath + filePath;
 		
-		Debug.Log("Path: \"" + path + "\"");
+		Debug.Log("AudioMSave|SavePath: \"" + path + "\"");
 		
 		FileStream stream = new FileStream(path, FileMode.Create);
 		
-		formatter.Serialize(stream, AudioData);
+		formatter.Serialize(stream, Data);
 		stream.Close();
 	}
 	

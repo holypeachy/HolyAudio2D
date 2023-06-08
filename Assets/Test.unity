@@ -693,9 +693,11 @@ MonoBehaviour:
   AreMixersSetupProperly: 1
   EnableDebug: 1
   DisableSpatialBlend: 0
-  Mixers:
-  - {fileID: 24100000, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
-  - {fileID: 24100000, guid: c4320fec57a5ff645b2607360a340414, type: 2}
+  MixersInfo:
+  - Mixer: {fileID: 24100000, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
+    UpdateMode: 0
+  - Mixer: {fileID: 24100000, guid: c4320fec57a5ff645b2607360a340414, type: 2}
+    UpdateMode: 0
   MixerGroups:
   - {fileID: 3156385425310214127, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
   - {fileID: 9197093663670908674, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
@@ -714,15 +716,16 @@ MonoBehaviour:
     Pitch: 1
     StereoPan: 0
     SpatialBlend: 0
-    ReverbZoneMix: 1
+    ReverbZoneMix: 0
     DopplerLevel: 0
     Spread: 0
-    VolumeRolloff: 1
+    VolumeRolloff: 0
     MinDistance: 0
     MaxDistance: 500
   SourceSounds:
   - ClipName: MJ
     Source: {fileID: 1478122665}
+  GameAudioVersion: 1.0.0
   load: 0
 --- !u!82 &1478122665
 AudioSource:
