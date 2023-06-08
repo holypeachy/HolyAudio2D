@@ -10,6 +10,7 @@ public class AudioManager : MonoBehaviour
 	public static AudioManager Instance;
 
 	// Control Flow
+	public bool AreMixersSetupProperly = true;
 	public bool EnableDebug = true;
 	public bool DisableSpatialBlend = false;
 	
@@ -29,9 +30,13 @@ public class AudioManager : MonoBehaviour
 	[SerializeField] private SourceSound[] SourceSounds;
 	
 	
+	// Settings
+	
+	
 	//Testing
 	private bool canPlay = false;
 	private bool uwu = false;
+	public bool load = false;
 
 
 	private void Awake()
@@ -104,7 +109,12 @@ public class AudioManager : MonoBehaviour
 		if(canPlay && !uwu)
 		{
 			uwu = true;
-			// Stuff
+			canPlay = false;
+			SaveSettings();
+		}
+		else if(load)
+		{
+			LoadSettings();
 		}
 	}
 
@@ -383,6 +393,61 @@ public class AudioManager : MonoBehaviour
 	}
 
 	
+	public void SaveSettings()
+	{
+		if(AreMixersSetupProperly)
+		{
+			float[] RawVolumeLevels = new float[MixerGroups.Length + 1];
+			
+			for (int i = 0; i < MixerGroups.Length; i++)
+			{
+				MixerGroups[i].audioMixer.GetFloat(MixerGroups[i].name + "Volume", out RawVolumeLevels[i]);
+				if(EnableDebug)
+				{
+					Debug.Log("AudioManager|SaveSettings: " + MixerGroups[i].name + "Volume" + RawVolumeLevels[i]);
+				}
+			}
+			
+			MixerGroups[0].audioMixer.GetFloat("MasterVolume", out RawVolumeLevels[MixerGroups.Length]);
+			if(EnableDebug)
+			{
+				Debug.Log("AudioManager|SaveSettings: " + "MasterVolume" + " " + RawVolumeLevels[MixerGroups.Length]);
+			}
+
+			AudioData data = new AudioData();
+			data.Volumes = RawVolumeLevels;
+		
+			AudioMSave.SaveData(data);
+		}
+
+	}
+	
+	
+	public void LoadSettings()
+	{
+		if(AreMixersSetupProperly)
+		{
+			AudioData data =  AudioMSave.LoadData();
+	
+			if(data.Volumes.Length == MixerGroups.Length + 1)
+			{
+				for (int i = 0; i < MixerGroups.Length; i++)
+				{
+					MixerGroups[i].audioMixer.SetFloat(MixerGroups[i].name + "Volume", data.Volumes[i]);
+					Debug.Log("AudioManager|LoadSettings: " + MixerGroups[i].name + "Volume" + data.Volumes[i]);
+				}
+				MixerGroups[0].audioMixer.SetFloat("MasterVolume", data.Volumes[data.Volumes.Length - 1]);
+				Debug.Log("AudioManager|LoadSettings: " + "MasterVolume " + data.Volumes[data.Volumes.Length - 1]);
+			}
+			else
+			{
+				Debug.LogError("AudioManager|LoadSettings: The number of Mixers and data points saved do not match!");
+				return;
+			}
+		}
+	}
+	
+	
 	// Cooldown for testing
 	IEnumerator Cooldown()
 	{
@@ -390,4 +455,10 @@ public class AudioManager : MonoBehaviour
 		canPlay = true;
 	}
 
+}
+
+[System.Serializable]
+public class AudioData
+{
+	public float[] Volumes{set; get;}
 }

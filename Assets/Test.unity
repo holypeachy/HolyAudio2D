@@ -689,13 +689,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d69eb4dffee59346980de0d2e2ff70b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AreMixersSetupProperly: 1
   EnableDebug: 1
   DisableSpatialBlend: 0
   MixerGroups:
   - {fileID: 3156385425310214127, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
   - {fileID: 9197093663670908674, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
-  - {fileID: -4541444653638012970, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
-  - {fileID: -3249060065348300228, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
   Sounds:
   - ClipName: Theme
     Source: {fileID: 0}
@@ -718,6 +717,7 @@ MonoBehaviour:
     MinDistance: 0
     MaxDistance: 500
   SourceSounds: []
+  load: 0
 --- !u!1001 &1548246011
 PrefabInstance:
   m_ObjectHideFlags: 0
