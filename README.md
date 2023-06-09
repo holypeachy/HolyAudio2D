@@ -1,5 +1,5 @@
 # 🍑HolyAudio2D
-Goal: To create a comprehensive and relatively simple-to-deploy 2D audio manager for the <a href="https://github.com/TeaPot-TopHats"><strong>TeaPot TopHats</strong></a> Dev Team, for my future projects, and for any amateur to use.  
+Goal: To create a comprehensive and simple-to-deploy 2D audio manager for the <a href="https://github.com/TeaPot-TopHats"><strong>TeaPot TopHats</strong></a> Dev Team, for my future projects, and for any amateur to use.  
 
 Latest Version: N/A (To Be Released)
 
