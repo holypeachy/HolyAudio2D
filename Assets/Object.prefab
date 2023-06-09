@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 4777789174749556844}
   - component: {fileID: 4777789174749556847}
   - component: {fileID: 4777789174749556846}
+  - component: {fileID: 799435721}
   m_Layer: 0
   m_Name: Object
   m_TagString: Object
@@ -26,9 +27,9 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4777789174749556849}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -7.5100007, y: -0.22000001, z: 0}
-  m_LocalScale: {x: 1.316, y: 3.4013002, z: 1}
+  m_LocalScale: {x: 0.5450872, y: 2.8074331, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -133,3 +134,40 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &799435721
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4777789174749556849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98a2a04d7a3571b4884bb59012edb1da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  GlobalManager: {fileID: 0}
+  EnableDebug: 1
+  DisableSpatialBlend: 0
+  Sounds:
+  - ClipName: Theme
+    Source: {fileID: 0}
+    MixerGroup: {fileID: 3156385425310214127, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
+    AudioFile: {fileID: 8300000, guid: aa034b09bd275cc4c96d2e352be3fb0f, type: 3}
+    BypassEffects: 0
+    BypassListenerEffects: 0
+    BypassReverbZones: 0
+    PlayOnAwake: 1
+    Loop: 1
+    Priority: 128
+    Volume: 1
+    Pitch: 1
+    StereoPan: 0
+    SpatialBlend: 1
+    ReverbZoneMix: 0
+    DopplerLevel: 0
+    Spread: 0
+    VolumeRolloff: 1
+    MinDistance: 1.75
+    MaxDistance: 6
+  SourceSounds: []

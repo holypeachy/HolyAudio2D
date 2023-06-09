@@ -1,9 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 [System.Serializable]
-public class SourceSound
+public class HolySourceSound
 {
 	public string ClipName;
 	public AudioSource Source;

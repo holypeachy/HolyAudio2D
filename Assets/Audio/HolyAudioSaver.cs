@@ -1,19 +1,17 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 
-public static class AudioMSave
+public static class HolyAudioSaver
 {
-	private static string filePath = "/AudioSettings.bin";
+	private static string filePath = "/HolyAudioSettings.bin";
 	
-	public static void SaveData(AudioData Data)
+	public static void SaveData(HolyAudioData Data)
 	{
 		BinaryFormatter formatter = new BinaryFormatter();
 		string path = Application.persistentDataPath + filePath;
 		
-		Debug.Log("AudioMSave|SavePath: \"" + path + "\"");
+		Debug.Log("HolyAudioSave|SavePath: \"" + path + "\"");
 		
 		FileStream stream = new FileStream(path, FileMode.Create);
 		
@@ -21,7 +19,7 @@ public static class AudioMSave
 		stream.Close();
 	}
 	
-	public static AudioData LoadData()
+	public static HolyAudioData LoadData()
 	{
 		string path = Application.persistentDataPath + filePath;
 		if(File.Exists(path))
@@ -29,13 +27,13 @@ public static class AudioMSave
 			BinaryFormatter formatter = new BinaryFormatter();
 			FileStream stream = new FileStream(path, FileMode.Open);
 			
-			AudioData data = formatter.Deserialize(stream) as AudioData;
+			HolyAudioData data = formatter.Deserialize(stream) as HolyAudioData;
 			stream.Close();
 			return data;
 		}
 		else
 		{
-			Debug.LogError("AudioMSave: Save file is not found in " + path);
+			Debug.LogError("HolyAudioSave: Save file is not found in " + path);
 			return null;
 		}
 	}
