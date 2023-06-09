@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 
 /*
-	! Version: 0.1.0
+	! Version: 0.0.0
 	* 🍑HolyAudio2D
 	* Thank you for using this little project of mine, I hope it is helpful in your endeavors! -holypeach
 	? If you have any questions, suggestions, or find bugs here is the repo https://github.com/holypeachy/HolyAudio2D
