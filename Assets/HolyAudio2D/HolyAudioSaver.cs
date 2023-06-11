@@ -11,7 +11,7 @@ public static class HolyAudioSaver
 		BinaryFormatter formatter = new BinaryFormatter();
 		string path = Application.persistentDataPath + filePath;
 		
-		Debug.Log("HolyAudioSave|SavePath: \"" + path + "\"");
+		Debug.Log("HolyAudioSaver|SavePath: \"" + path + "\"");
 		
 		FileStream stream = new FileStream(path, FileMode.Create);
 		
@@ -33,7 +33,7 @@ public static class HolyAudioSaver
 		}
 		else
 		{
-			Debug.LogError("HolyAudioSave: Save file is not found in " + path);
+			Debug.LogError("HolyAudioSaver: Save file is not found in " + path);
 			return null;
 		}
 	}
