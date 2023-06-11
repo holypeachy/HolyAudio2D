@@ -414,6 +414,22 @@ PrefabInstance:
       propertyPath: GlobalManager
       value: 
       objectReference: {fileID: 1478122664}
+    - target: {fileID: 799435721, guid: ad9c6ae2b0a9e674c8be342dad64b7ff, type: 3}
+      propertyPath: DisableSpatialBlend
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 799435721, guid: ad9c6ae2b0a9e674c8be342dad64b7ff, type: 3}
+      propertyPath: Sounds.Array.data[0].Loop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 799435721, guid: ad9c6ae2b0a9e674c8be342dad64b7ff, type: 3}
+      propertyPath: Sounds.Array.data[0].ClipName
+      value: MJ
+      objectReference: {fileID: 0}
+    - target: {fileID: 799435721, guid: ad9c6ae2b0a9e674c8be342dad64b7ff, type: 3}
+      propertyPath: Sounds.Array.data[0].AudioFile
+      value: 
+      objectReference: {fileID: 8300000, guid: 619c1e89ec5ed814883ea4da5198886e, type: 3}
     - target: {fileID: 4777789174749556845, guid: ad9c6ae2b0a9e674c8be342dad64b7ff, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -692,16 +708,33 @@ MonoBehaviour:
   AreMixersSetupProperly: 1
   DisableSpatialBlend: 0
   EnableDebug: 1
-  EnableImportantDebug: 1
   MixersInfo:
   - Mixer: {fileID: 24100000, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
-    UpdateMode: 0
-  - Mixer: {fileID: 24100000, guid: c4320fec57a5ff645b2607360a340414, type: 2}
     UpdateMode: 0
   MixerGroups:
   - {fileID: 3156385425310214127, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
   - {fileID: 9197093663670908674, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
-  Sounds: []
+  Sounds:
+  - ClipName: Theme
+    Source: {fileID: 0}
+    MixerGroup: {fileID: 3156385425310214127, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
+    AudioFile: {fileID: 8300000, guid: aa034b09bd275cc4c96d2e352be3fb0f, type: 3}
+    BypassEffects: 0
+    BypassListenerEffects: 0
+    BypassReverbZones: 0
+    PlayOnAwake: 1
+    Loop: 1
+    Priority: 128
+    Volume: 1
+    Pitch: 1
+    StereoPan: 0
+    SpatialBlend: 0
+    ReverbZoneMix: 0
+    DopplerLevel: 0
+    Spread: 0
+    VolumeRolloff: 1
+    MinDistance: 1
+    MaxDistance: 15
   SourceSounds: []
   GameAudioVersion: 1.0.0
 --- !u!1001 &1548246011
