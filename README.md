@@ -6,6 +6,6 @@ Latest Version: N/A (To Be Released)
 
 ---
 ### Recent Work: 
-- Made LocalAudioManager. Added helpful inspector information. Overloaded some methods that improve performance if used.
+- Made LocalAudioManager. Added helpful inspector information. Overloaded some methods for more flexibility.
 ### To Do: 
 - Make documentation. Do testing in a real project. Prep a package for release.
