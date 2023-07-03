@@ -4,15 +4,16 @@ Goal: To create a comprehensive and simple-to-implement 2D Audio Manager for the
 Notes: Almost done with the first version, no testing has been done.
 
 Unity Editor Version: 2021.3.11f1 (This is the version of editor I used to make this. It will most likely work on later version although I have not tried)  
-Latest Version: N/A (To Be Released)
+Latest Version: 0.1.0 (To Be Released)
 
 ---
 ### Recent Work: 
-- Made LocalAudioManager.
-- Added helpful inspector information.
-- Overloaded some methods for more flexibility.
+- Changed the way sounds are handled (now using dictionaries).
+  - Updated HolyAudioManager and all it's methods to use dictionaries.
 ### To Do: 
 - Edit documentation.
 - Do testing in a real project.
 - Prep a package for release.
-- Change the way sounds are handled (Hash Tables). Add "sound occlusion" and reverb.
+- Add "sound occlusion" and reverb.
+- Add function to change looping of sounds.
+- Need to update HolyLocalAudio.
