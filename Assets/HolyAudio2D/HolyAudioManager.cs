@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -33,22 +34,20 @@ public class HolyAudioManager : MonoBehaviour
 	
 	[Tooltip("Add all of your Mixers here. It also allows you to choose UpdateMode for each.")]
 	[SerializeField] private HolyMixerInfo[] MixersInfo;
-	
-	private AudioMixer[] Mixers;
-	private Dictionary<string, AudioMixer> _MixersDict;
+	private Dictionary<string, AudioMixer> MixerDict;
 	
 	[Tooltip("Add all of your MixerGroups here. Make sure to include all of the ones being used for sounds.")]
 	[SerializeField] private AudioMixerGroup[] MixerGroups;
-	private Dictionary<string, AudioMixerGroup> _MixerGroupsDict;
+	private Dictionary<string, AudioMixerGroup> MixerGroupDict;
 
 	[Header("Audio Clips")]
 	[Tooltip("Make your own sounds here. If you need to use custom spatial audio curves use SourceSounds.")]
 	[SerializeField] private HolySound[] Sounds;
-	private Dictionary<string, HolySound> _SoundsDict;
+	private Dictionary<string, HolySound> SoundDict;
 	
 	[Tooltip("Add your clips as AudioSources first and then add those AudioSources here.")]
 	[SerializeField] private HolySourceSound[] SourceSounds;
-	private Dictionary<string, HolySourceSound> _SourceSoundsDict;
+	private Dictionary<string, HolySourceSound> SourceSoundDict;
 
 
 	// Saving
@@ -62,6 +61,9 @@ public class HolyAudioManager : MonoBehaviour
 	private bool DidExecuteSourceSound = false;
 	private bool SoundNotFound = false;
 	private bool SourceSoundNotFound = false;
+
+	// Memory
+	HolySound sound;
 	
 
 	// All the important setup happens here.
@@ -80,115 +82,117 @@ public class HolyAudioManager : MonoBehaviour
 		DontDestroyOnLoad(gameObject);
 		
 		// Initializes Dictionaries
-		_MixersDict = new Dictionary<string, AudioMixer>();
-		_MixerGroupsDict = new Dictionary<string, AudioMixerGroup>();
-		_SoundsDict = new Dictionary<string, HolySound>();
-		_SourceSoundsDict = new Dictionary<string, HolySourceSound>();
+		MixerDict = new Dictionary<string, AudioMixer>();
+		MixerGroupDict = new Dictionary<string, AudioMixerGroup>();
+		SoundDict = new Dictionary<string, HolySound>();
+		SourceSoundDict = new Dictionary<string, HolySourceSound>();
 		
 		foreach (HolyMixerInfo mixer in MixersInfo)
 		{
-			if(_MixersDict.ContainsKey(mixer.Mixer.name) && EnableDebug)
+			if(MixerDict.ContainsKey(mixer.Mixer.name) && EnableDebug)
 			{
 				Debug.Log("HolyAudioManager|Awake|Storing Mixers: Mixer " + mixer.Mixer.name +  " already exists in MixersDict, there is a duplicate name!");
 				continue;
 			}
-			_MixersDict.Add(mixer.Mixer.name, mixer.Mixer);
+			MixerDict.Add(mixer.Mixer.name, mixer.Mixer);
 			mixer.Mixer.updateMode = mixer.UpdateMode;
 		}
 		
 		foreach (AudioMixerGroup group in MixerGroups)
 		{
-			if (_MixerGroupsDict.ContainsKey(group.name) && EnableDebug)
+			if (MixerGroupDict.ContainsKey(group.name) && EnableDebug)
 			{
 				Debug.Log("HolyAudioManager|Awake|Storing MixerGroups: MixerGroup " + group.name + " already exists in MixerGroupsDict, there is a duplicate name!");
 				continue;
 			}
-			_MixerGroupsDict.Add(group.name, group);
+			MixerGroupDict.Add(group.name, group);
 		}
 		
 		foreach (HolySound sound in Sounds)
 		{
-			if (_SoundsDict.ContainsKey(sound.ClipName) && EnableDebug)
+			if (SoundDict.ContainsKey(sound.ClipName) && EnableDebug)
 			{
 				Debug.Log("HolyAudioManager|Awake|Storing Sounds: Sound " + sound.ClipName + " already exists in SoundsDict, there is a duplicate name!");
 				continue;
 			}
-			_SoundsDict.Add(sound.ClipName, sound);
+			SoundDict.Add(sound.ClipName, sound);
 		}
 
 		foreach (HolySourceSound sourceSound in SourceSounds)
 		{
-			if (_SourceSoundsDict.ContainsKey(sourceSound.ClipName) && EnableDebug)
+			if (SourceSoundDict.ContainsKey(sourceSound.ClipName) && EnableDebug)
 			{
 				Debug.Log("HolyAudioManager|Awake|Storing SourceSounds: SourceSound " + sourceSound.ClipName + " already exists in SourceSoundsDict, there is a duplicate name!");
 				continue;
 			}
-			_SourceSoundsDict.Add(sourceSound.ClipName, sourceSound);
+			SourceSoundDict.Add(sourceSound.ClipName, sourceSound);
 		}
 		
-		foreach (KeyValuePair<string, HolySound> keyValuePair in _SoundsDict)
+		foreach (KeyValuePair<string, HolySound> keyValuePair in SoundDict)
 		{
-			HolySound s = keyValuePair.Value;
-			s.Source = gameObject.AddComponent<AudioSource>();
+			sound = keyValuePair.Value;
+			sound.Source = gameObject.AddComponent<AudioSource>();
 
-			s.Source.outputAudioMixerGroup = s.MixerGroup;
-			s.Source.clip = s.AudioFile;
+			sound.Source.outputAudioMixerGroup = sound.MixerGroup;
+			sound.Source.clip = sound.AudioFile;
 			
-			s.Source.bypassEffects = s.BypassEffects;
-			s.Source.bypassListenerEffects = s.BypassListenerEffects;
-			s.Source.bypassReverbZones = s.BypassReverbZones;
+			sound.Source.bypassEffects = sound.BypassEffects;
+			sound.Source.bypassListenerEffects = sound.BypassListenerEffects;
+			sound.Source.bypassReverbZones = sound.BypassReverbZones;
 			
-			s.Source.playOnAwake = s.PlayOnAwake;
-			s.Source.loop = s.Loop;
+			sound.Source.playOnAwake = sound.PlayOnAwake;
+			sound.Source.loop = sound.Loop;
 			
-			s.Source.priority = s.Priority;
-			s.Source.volume = s.Volume;
-			s.Source.pitch = s.Pitch;
-			s.Source.panStereo = s.StereoPan;
-			s.Source.spatialBlend = s.SpatialBlend;
-			s.Source.reverbZoneMix = s.ReverbZoneMix;
-			s.Source.dopplerLevel = s.DopplerLevel;
-			s.Source.spread = s.Spread;
+			sound.Source.priority = sound.Priority;
+			sound.Source.volume = sound.Volume;
+			sound.Source.pitch = sound.Pitch;
+			sound.Source.panStereo = sound.StereoPan;
+			sound.Source.spatialBlend = sound.SpatialBlend;
+			sound.Source.reverbZoneMix = sound.ReverbZoneMix;
+			sound.Source.dopplerLevel = sound.DopplerLevel;
+			sound.Source.spread = sound.Spread;
 			
-			s.Source.rolloffMode = s.VolumeRolloff;
-			s.Source.minDistance = s.MinDistance;
-			s.Source.maxDistance = s.MaxDistance;
+			sound.Source.rolloffMode = sound.VolumeRolloff;
+			sound.Source.minDistance = sound.MinDistance;
+			sound.Source.maxDistance = sound.MaxDistance;
 
-			if (s.PlayOnAwake)
+			if (sound.PlayOnAwake)
 			{
-				s.Source.Play();
+				sound.Source.Play();
 			}
 		}
 
 		if(DisableSpatialBlend)
 		{
-			foreach (KeyValuePair<string, HolySound> keyValuePair in _SoundsDict)
+			foreach (KeyValuePair<string, HolySound> keyValuePair in SoundDict)
 			{
 				keyValuePair.Value.Source.spatialBlend = 0f;
 			}
-			foreach (KeyValuePair<string, HolySourceSound> keyValuePair in _SourceSoundsDict)
+			foreach (KeyValuePair<string, HolySourceSound> keyValuePair in SourceSoundDict)
 			{
 				keyValuePair.Value.Source.spatialBlend = 0f;
 			}
 		}
 	}
 	
-	private void Start() {
-
+	// ! For testing
+	private void Start()
+	{
+		Play("Theme");
+		PauseAllFromMixerGroup("Music");
 	}
-	
-	
+
 	// Play
 	public void Play(string clipName)
 	{
 		HolySound s;
-		if(_SoundsDict.TryGetValue(clipName, out s))
+		if(SoundDict.TryGetValue(clipName, out s))
 		{
 			s.Source.PlayOneShot(s.Source.clip);
 			DidExecuteSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyAudioManager|Sound|Play: " + clipName + " has played!");
+				Debug.Log("HolyAudioManager|Sound|Play: " + clipName + " has played!");
 			}
 		}
 		else
@@ -197,13 +201,13 @@ public class HolyAudioManager : MonoBehaviour
 		}
 		
 		HolySourceSound ss;
-		if (_SourceSoundsDict.TryGetValue(clipName, out ss))
+		if (SourceSoundDict.TryGetValue(clipName, out ss))
 		{
 			ss.Source.PlayOneShot(ss.Source.clip);
 			DidExecuteSourceSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyAudioManager|SourceSound|Play: " + clipName + " has played!");
+				Debug.Log("HolyAudioManager|SourceSound|Play: " + clipName + " has played!");
 			}
 		}
 		else
@@ -227,18 +231,17 @@ public class HolyAudioManager : MonoBehaviour
 		SoundNotFound = false;
 		SourceSoundNotFound = false;
 	}
-	
 
 	public void PlayOnce(string clipName)
 	{
 		HolySound s;
-		if (_SoundsDict.TryGetValue(clipName, out s))
+		if (SoundDict.TryGetValue(clipName, out s))
 		{
 			s.Source.Play();
 			DidExecuteSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyAudioManager|Sound|PlayOnce: " + clipName + " has played once!");
+				Debug.Log("HolyAudioManager|Sound|PlayOnce: " + clipName + " has played once!");
 			}
 		}
 		else
@@ -247,13 +250,13 @@ public class HolyAudioManager : MonoBehaviour
 		}
 
 		HolySourceSound ss;
-		if (_SourceSoundsDict.TryGetValue(clipName, out ss))
+		if (SourceSoundDict.TryGetValue(clipName, out ss))
 		{
 			ss.Source.Play();
 			DidExecuteSourceSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyAudioManager|SourceSound|PlayOnce: " + clipName + " has played once!");
+				Debug.Log("HolyAudioManager|SourceSound|PlayOnce: " + clipName + " has played once!");
 			}
 		}
 		else
@@ -283,13 +286,13 @@ public class HolyAudioManager : MonoBehaviour
 	public void Pause(string clipName)
 	{
 		HolySound s;
-		if (_SoundsDict.TryGetValue(clipName, out s))
+		if (SoundDict.TryGetValue(clipName, out s))
 		{
 			s.Source.Pause();
 			DidExecuteSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyAudioManager|Sound|Pause: " + clipName + " has paused!");
+				Debug.Log("HolyAudioManager|Sound|Pause: " + clipName + " has paused!");
 			}
 		}
 		else
@@ -298,13 +301,13 @@ public class HolyAudioManager : MonoBehaviour
 		}
 
 		HolySourceSound ss;
-		if (_SourceSoundsDict.TryGetValue(clipName, out ss))
+		if (SourceSoundDict.TryGetValue(clipName, out ss))
 		{
 			ss.Source.Pause();
 			DidExecuteSourceSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyAudioManager|SourceSound|Pause: " + clipName + " has paused!");
+				Debug.Log("HolyAudioManager|SourceSound|Pause: " + clipName + " has paused!");
 			}
 		}
 		else
@@ -333,14 +336,14 @@ public class HolyAudioManager : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerExist(mixerGroupName))
+			if (!DoesMixerGroupExist(mixerGroupName))
 			{
 				Debug.LogError("HolyAudioManager|PauseAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
 			}
 		}
 
-        foreach (KeyValuePair<string, HolySound> sPair in _SoundsDict)
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
 			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
@@ -352,7 +355,7 @@ public class HolyAudioManager : MonoBehaviour
 			}
 		}
 
-        foreach (KeyValuePair<string, HolySourceSound> ssPair in _SourceSoundsDict)
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
 		{
 			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
@@ -366,23 +369,22 @@ public class HolyAudioManager : MonoBehaviour
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|PauseAllButMixerGroup: All sounds except from " + mixerGroupName + " have paused!");
+			Debug.Log("HolyAudioManager|PauseAllButMixerGroup: All sounds except from " + mixerGroupName + " have paused!");
 		}
 	}
-	
 	
 	public void PauseAllFromMixerGroup(string mixerGroupName)
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerExist(mixerGroupName))
+			if (!DoesMixerGroupExist(mixerGroupName))
 			{
 				Debug.LogError("HolyAudioManager|PauseAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
 			}
 		}
 
-        foreach (KeyValuePair<string, HolySound> sPair in _SoundsDict)
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
 			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
@@ -390,7 +392,7 @@ public class HolyAudioManager : MonoBehaviour
 			}
 		}
 
-        foreach (KeyValuePair<string, HolySourceSound> ssPair in _SourceSoundsDict)
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
 		{
 			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
@@ -400,24 +402,24 @@ public class HolyAudioManager : MonoBehaviour
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|PauseAllFromMixerGroup: Sounds in " + mixerGroupName + " have paused!");
+			Debug.Log("HolyAudioManager|PauseAllFromMixerGroup: Sounds in " + mixerGroupName + " have paused!");
 		}
 	}
 	
 	public void PauseAll()
 	{
-        foreach (KeyValuePair<string, HolySound> sPair in _SoundsDict)
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
 			sPair.Value.Source.Pause();
 		}
-        foreach (KeyValuePair<string, HolySourceSound> ssPair in _SourceSoundsDict)
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
 		{
 			ssPair.Value.Source.Pause();
 		}
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|PauseAll: All sounds paused!");
+			Debug.Log("HolyAudioManager|PauseAll: All sounds paused!");
 		}
 	}
 	
@@ -425,324 +427,320 @@ public class HolyAudioManager : MonoBehaviour
 	// Unpause
 	public void Unpause(string clipName)
 	{
-        HolySound s;
-        if (_SoundsDict.TryGetValue(clipName, out s))
-        {
-            s.Source.UnPause();
-            DidExecuteSound = true;
-            if (EnableDebug)
-            {
-                Debug.LogWarning("HolyAudioManager|Sound|Unpause: " + clipName + " has unpaused!");
-            }
-        }
-        else
-        {
-            SoundNotFound = true;
-        }
+		HolySound s;
+		if (SoundDict.TryGetValue(clipName, out s))
+		{
+			s.Source.UnPause();
+			DidExecuteSound = true;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyAudioManager|Sound|Unpause: " + clipName + " has unpaused!");
+			}
+		}
+		else
+		{
+			SoundNotFound = true;
+		}
 
-        HolySourceSound ss;
-        if (_SourceSoundsDict.TryGetValue(clipName, out ss))
-        {
-            ss.Source.UnPause();
-            DidExecuteSourceSound = true;
-            if (EnableDebug)
-            {
-                Debug.LogWarning("HolyAudioManager|SourceSound|Unpause: " + clipName + " has unpaused!");
-            }
-        }
-        else
-        {
-            SourceSoundNotFound = true;
-        }
+		HolySourceSound ss;
+		if (SourceSoundDict.TryGetValue(clipName, out ss))
+		{
+			ss.Source.UnPause();
+			DidExecuteSourceSound = true;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyAudioManager|SourceSound|Unpause: " + clipName + " has unpaused!");
+			}
+		}
+		else
+		{
+			SourceSoundNotFound = true;
+		}
 
-        // Debug
-        if (SoundNotFound && SourceSoundNotFound)
-        {
-            Debug.LogError("HolyAudioManager|Sounds&SourceSounds|Unpause: " + clipName + " does NOT exist!");
-        }
-        else if (DidExecuteSound && DidExecuteSourceSound)
-        {
-            Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|Unpause: A clip has been found in both Sounds and SourceSounds");
-        }
+		// Debug
+		if (SoundNotFound && SourceSoundNotFound)
+		{
+			Debug.LogError("HolyAudioManager|Sounds&SourceSounds|Unpause: " + clipName + " does NOT exist!");
+		}
+		else if (DidExecuteSound && DidExecuteSourceSound)
+		{
+			Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|Unpause: A clip has been found in both Sounds and SourceSounds");
+		}
 
-        // We reset all the variables
-        DidExecuteSound = false;
-        DidExecuteSourceSound = false;
-        SoundNotFound = false;
-        SourceSoundNotFound = false;
+		// We reset all the variables
+		DidExecuteSound = false;
+		DidExecuteSourceSound = false;
+		SoundNotFound = false;
+		SourceSoundNotFound = false;
 	}
 
 	public void UnpauseAllButMixerGroup(string mixerGroupName)
 	{
-        if (EnableDebug)
-        {
-            if (!DoesMixerExist(mixerGroupName))
-            {
-                Debug.LogError("HolyAudioManager|UnpauseAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
-                return;
-            }
-        }
+		if (EnableDebug)
+		{
+			if (!DoesMixerGroupExist(mixerGroupName))
+			{
+				Debug.LogError("HolyAudioManager|UnpauseAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
+				return;
+			}
+		}
 
-        foreach (KeyValuePair<string, HolySound> sPair in _SoundsDict)
-        {
-            if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
-            {
-                continue;
-            }
-            else
-            {
-                sPair.Value.Source.UnPause();
-            }
-        }
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
+		{
+			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
+			{
+				continue;
+			}
+			else
+			{
+				sPair.Value.Source.UnPause();
+			}
+		}
 
-        foreach (KeyValuePair<string, HolySourceSound> ssPair in _SourceSoundsDict)
-        {
-            if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
-            {
-                continue;
-            }
-            else
-            {
-                ssPair.Value.Source.UnPause();
-            }
-        }
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
+		{
+			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
+			{
+				continue;
+			}
+			else
+			{
+				ssPair.Value.Source.UnPause();
+			}
+		}
 
-        if (EnableDebug)
-        {
-            Debug.LogWarning("HolyAudioManager|UnpauseAllButMixerGroup: All sounds except from " + mixerGroupName + " have unpaused!");
-        }
+		if (EnableDebug)
+		{
+			Debug.Log("HolyAudioManager|UnpauseAllButMixerGroup: All sounds except from " + mixerGroupName + " have unpaused!");
+		}
 	}
 
 	public void UnpauseAllFromMixerGroup(string mixerGroupName)
 	{
-        if (EnableDebug)
-        {
-            if (!DoesMixerExist(mixerGroupName))
-            {
-                Debug.LogError("HolyAudioManager|UnpauseAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
-                return;
-            }
-        }
+		if (EnableDebug)
+		{
+			if (!DoesMixerGroupExist(mixerGroupName))
+			{
+				Debug.LogError("HolyAudioManager|UnpauseAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
+				return;
+			}
+		}
 
-        foreach (KeyValuePair<string, HolySound> sPair in _SoundsDict)
-        {
-            if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
-            {
-                sPair.Value.Source.UnPause();
-            }
-        }
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
+		{
+			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
+			{
+				sPair.Value.Source.UnPause();
+			}
+		}
 
-        foreach (KeyValuePair<string, HolySourceSound> ssPair in _SourceSoundsDict)
-        {
-            if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
-            {
-                ssPair.Value.Source.UnPause();
-            }
-        }
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
+		{
+			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
+			{
+				ssPair.Value.Source.UnPause();
+			}
+		}
 
-        if (EnableDebug)
-        {
-            Debug.LogWarning("HolyAudioManager|UnpauseAllFromMixerGroup: Sounds in " + mixerGroupName + " have unpaused!");
-        }
+		if (EnableDebug)
+		{
+			Debug.Log("HolyAudioManager|UnpauseAllFromMixerGroup: Sounds in " + mixerGroupName + " have unpaused!");
+		}
 	}
 
 	public void UnpauseAll()
 	{
-        foreach (KeyValuePair<string, HolySound> sPair in _SoundsDict)
-        {
-            sPair.Value.Source.UnPause();
-        }
-        foreach (KeyValuePair<string, HolySourceSound> ssPair in _SourceSoundsDict)
-        {
-            ssPair.Value.Source.UnPause();
-        }
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
+		{
+			sPair.Value.Source.UnPause();
+		}
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
+		{
+			ssPair.Value.Source.UnPause();
+		}
 
-        if (EnableDebug)
-        {
-            Debug.LogWarning("HolyAudioManager|UnpauseAll: All sounds unpaused!");
-        }
+		if (EnableDebug)
+		{
+			Debug.Log("HolyAudioManager|UnpauseAll: All sounds unpaused!");
+		}
 	}
 	
 	
 	// Stop
 	public void Stop(string clipName)
 	{
-        HolySound s;
-        if (_SoundsDict.TryGetValue(clipName, out s))
-        {
-            s.Source.Stop();
-            DidExecuteSound = true;
-            if (EnableDebug)
-            {
-                Debug.LogWarning("HolyAudioManager|Sound|Stop: " + clipName + " has stopped!");
-            }
-        }
-        else
-        {
-            SoundNotFound = true;
-        }
+		HolySound s;
+		if (SoundDict.TryGetValue(clipName, out s))
+		{
+			s.Source.Stop();
+			DidExecuteSound = true;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyAudioManager|Sound|Stop: " + clipName + " has stopped!");
+			}
+		}
+		else
+		{
+			SoundNotFound = true;
+		}
 
-        HolySourceSound ss;
-        if (_SourceSoundsDict.TryGetValue(clipName, out ss))
-        {
-            ss.Source.Stop();
-            DidExecuteSourceSound = true;
-            if (EnableDebug)
-            {
-                Debug.LogWarning("HolyAudioManager|SourceSound|Stop: " + clipName + " has stopped!");
-            }
-        }
-        else
-        {
-            SourceSoundNotFound = true;
-        }
+		HolySourceSound ss;
+		if (SourceSoundDict.TryGetValue(clipName, out ss))
+		{
+			ss.Source.Stop();
+			DidExecuteSourceSound = true;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyAudioManager|SourceSound|Stop: " + clipName + " has stopped!");
+			}
+		}
+		else
+		{
+			SourceSoundNotFound = true;
+		}
 
-        // Debug
-        if (SoundNotFound && SourceSoundNotFound)
-        {
-            Debug.LogError("HolyAudioManager|Sounds&SourceSounds|Stop: " + clipName + " does NOT exist!");
-        }
-        else if (DidExecuteSound && DidExecuteSourceSound)
-        {
-            Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|Stop: A clip has been found in both Sounds and SourceSounds");
-        }
+		// Debug
+		if (SoundNotFound && SourceSoundNotFound)
+		{
+			Debug.LogError("HolyAudioManager|Sounds&SourceSounds|Stop: " + clipName + " does NOT exist!");
+		}
+		else if (DidExecuteSound && DidExecuteSourceSound)
+		{
+			Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|Stop: A clip has been found in both Sounds and SourceSounds");
+		}
 
-        // We reset all the variables
-        DidExecuteSound = false;
-        DidExecuteSourceSound = false;
-        SoundNotFound = false;
-        SourceSoundNotFound = false;
+		// We reset all the variables
+		DidExecuteSound = false;
+		DidExecuteSourceSound = false;
+		SoundNotFound = false;
+		SourceSoundNotFound = false;
 	}
 	
 	public void StopAllButMixerGroup(string mixerGroupName)
 	{
-        if (EnableDebug)
-        {
-            if (!DoesMixerExist(mixerGroupName))
-            {
-                Debug.LogError("HolyAudioManager|StopAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
-                return;
-            }
-        }
+		if (EnableDebug)
+		{
+			if (!DoesMixerGroupExist(mixerGroupName))
+			{
+				Debug.LogError("HolyAudioManager|StopAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
+				return;
+			}
+		}
 
-        foreach (KeyValuePair<string, HolySound> sPair in _SoundsDict)
-        {
-            if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
-            {
-                continue;
-            }
-            else
-            {
-                sPair.Value.Source.Stop();
-            }
-        }
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
+		{
+			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
+			{
+				continue;
+			}
+			else
+			{
+				sPair.Value.Source.Stop();
+			}
+		}
 
-        foreach (KeyValuePair<string, HolySourceSound> ssPair in _SourceSoundsDict)
-        {
-            if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
-            {
-                continue;
-            }
-            else
-            {
-                ssPair.Value.Source.Stop();
-            }
-        }
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
+		{
+			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
+			{
+				continue;
+			}
+			else
+			{
+				ssPair.Value.Source.Stop();
+			}
+		}
 
-        if (EnableDebug)
-        {
-            Debug.LogWarning("HolyAudioManager|StopAllButMixerGroup: All sounds except from " + mixerGroupName + " have stopped!");
-        }
+		if (EnableDebug)
+		{
+			Debug.Log("HolyAudioManager|StopAllButMixerGroup: All sounds except from " + mixerGroupName + " have stopped!");
+		}
 	}
 	
 	public void StopAllFromMixerGroup(string mixerGroupName)
 	{
-        if (EnableDebug)
-        {
-            if (!DoesMixerExist(mixerGroupName))
-            {
-                Debug.LogError("HolyAudioManager|StopAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
-                return;
-            }
-        }
+		if (EnableDebug)
+		{
+			if (!DoesMixerGroupExist(mixerGroupName))
+			{
+				Debug.LogError("HolyAudioManager|StopAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
+				return;
+			}
+		}
 
-        foreach (KeyValuePair<string, HolySound> sPair in _SoundsDict)
-        {
-            if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
-            {
-                sPair.Value.Source.Stop();
-            }
-        }
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
+		{
+			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
+			{
+				sPair.Value.Source.Stop();
+			}
+		}
 
-        foreach (KeyValuePair<string, HolySourceSound> ssPair in _SourceSoundsDict)
-        {
-            if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
-            {
-                ssPair.Value.Source.Stop();
-            }
-        }
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
+		{
+			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
+			{
+				ssPair.Value.Source.Stop();
+			}
+		}
 
-        if (EnableDebug)
-        {
-            Debug.LogWarning("HolyAudioManager|StopAllFromMixerGroup: Sounds in " + mixerGroupName + " have stopped!");
-        }
+		if (EnableDebug)
+		{
+			Debug.Log("HolyAudioManager|StopAllFromMixerGroup: Sounds in " + mixerGroupName + " have stopped!");
+		}
 	}
 	
 	public void StopAll()
 	{
-        foreach (KeyValuePair<string, HolySound> sPair in _SoundsDict)
-        {
-            sPair.Value.Source.Stop();
-        }
-        foreach (KeyValuePair<string, HolySourceSound> ssPair in _SourceSoundsDict)
-        {
-            ssPair.Value.Source.Stop();
-        }
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
+		{
+			sPair.Value.Source.Stop();
+		}
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
+		{
+			ssPair.Value.Source.Stop();
+		}
 
-        if (EnableDebug)
-        {
-            Debug.LogWarning("HolyAudioManager|StopAll: All sounds stopped!");
-        }
+		if (EnableDebug)
+		{
+			Debug.Log("HolyAudioManager|StopAll: All sounds stopped!");
+		}
 	}
 
 
 	// Get MixerGroup(s)
 	public AudioMixer GetMixer(string mixerName)
 	{
-		foreach (AudioMixer mixer in Mixers)
+		AudioMixer mixer;
+		if(MixerDict.TryGetValue(mixerName, out mixer))
 		{
-			if (mixer.name == mixerName)
-			{
-				return mixer;
-			}
+			return mixer;
 		}
 
 		Debug.LogError("HolyAudioManager|GetMixer: " + mixerName + " does NOT exist!");
 		return null;
 	}
 	
-	public AudioMixer[] GetAllMixers()
+	public Dictionary<string, AudioMixer> GetAllMixers()
 	{
-		return Mixers;
+		return MixerDict;
 	}
 	
 	public AudioMixerGroup GetMixerGroup(string mixerGroupName)
 	{
-		foreach (AudioMixerGroup group in MixerGroups)
+		AudioMixerGroup group;
+		if (MixerGroupDict.TryGetValue(mixerGroupName, out group))
 		{
-			if(group.name == mixerGroupName)
-			{
-				return group;
-			}
+			return group;
 		}
 
 		Debug.LogError("HolyAudioManager|GetMixerGroup: " + mixerGroupName + " does NOT exist!");
 		return null;
 	}
 	
-	public AudioMixerGroup[] GetAllMixerGroups()
+	public Dictionary<string, AudioMixerGroup> GetAllMixerGroups()
 	{
-		return MixerGroups;	
+		return MixerGroupDict;	
 	}
 
 
@@ -751,26 +749,30 @@ public class HolyAudioManager : MonoBehaviour
 	{
 		if (AreMixersSetupProperly)
 		{
-			float[] RawMasterVolumes = new float[Mixers.Length];
-			float[] RawGroupVolumes = new float[MixerGroups.Length];
-
-			for (int i = 0; i < Mixers.Length; i++)
-			{
-				Mixers[i].GetFloat("MasterVolume", out RawMasterVolumes[i]);
-				if (EnableDebug)
-				{
-					Debug.Log("HolyAudioManager|SaveSettings: " + Mixers[i].name + "'s MasterVolume is " + RawMasterVolumes[i]);
-				}
-			}
+			float[] RawMasterVolumes = new float[MixerDict.Count];
+			float[] RawGroupVolumes = new float[MixerGroupDict.Count];
 			
-			for (int i = 0; i < MixerGroups.Length; i++)
+			int counter = 0;
+			foreach (KeyValuePair<string, AudioMixer> mixerPair in MixerDict)
 			{
-				MixerGroups[i].audioMixer.GetFloat(MixerGroups[i].name + "Volume", out RawGroupVolumes[i]);
-				if (EnableDebug)
-				{
-					Debug.Log("HolyAudioManager|SaveSettings: " + MixerGroups[i].audioMixer.name + "'s -> " + MixerGroups[i].name + "Volume is " + RawGroupVolumes[i]);
-				}
+				mixerPair.Value.GetFloat("MasterVolume", out RawMasterVolumes[counter]);
+                if (EnableDebug)
+                {
+                    Debug.Log("HolyAudioManager|SaveSettings: " + mixerPair.Value.name + "'s MasterVolume is " + RawMasterVolumes[counter]);
+                }
+				counter++;
 			}
+
+            counter = 0;
+            foreach (KeyValuePair<string, AudioMixerGroup> groupPair in MixerGroupDict)
+            {
+                groupPair.Value.audioMixer.GetFloat(groupPair.Value.name + "Volume", out RawGroupVolumes[counter]);
+                if (EnableDebug)
+                {
+					Debug.Log("HolyAudioManager|SaveSettings: " + groupPair.Value.audioMixer.name + "'s -> " + groupPair.Value.name + "Volume is " + RawGroupVolumes[counter]);
+                }
+                counter++;
+            }
 
 			HolyAudioData data = new HolyAudioData();
 			data.AudioVersion = GameAudioVersion;
@@ -779,80 +781,88 @@ public class HolyAudioManager : MonoBehaviour
 
 			HolyAudioSaver.SaveData(data);
 		}
-
 	}
 
-	public void LoadSettings()
-	{
-		if (AreMixersSetupProperly)
-		{
-			HolyAudioData data = HolyAudioSaver.LoadData();
+    public void LoadSettings()
+    {
+        if (AreMixersSetupProperly)
+        {
+            HolyAudioData data = HolyAudioSaver.LoadData();
 
-			if(data == null)
-			{
-				Debug.LogError("HolyAudioManager|LoadSettings: AudioData saved file not found!");
-				return;
-			}
-			else if(data.AudioVersion != GameAudioVersion)
-			{
-				Debug.LogError("HolyAudioManager|LoadSettings: GameAudioVersion does not match! Settings will be reset!");
-				return;
-			}
+            if (data == null)
+            {
+                Debug.LogError("HolyAudioManager|LoadSettings: AudioData saved file not found!");
+                return;
+            }
 
-			if (data.MasterVolumes.Length == Mixers.Length)
-			{
-				for (int i = 0; i < Mixers.Length; i++)
-				{
-					Mixers[i].SetFloat("MasterVolume", data.MasterVolumes[i]);
-					if(EnableDebug)
-					{
-						Debug.Log("HolyAudioManager|LoadSettings: " + Mixers[i].name + "'s MasterVolume is " + data.MasterVolumes[i]);
-					}
-				}
-			}
-			else
-			{
-				Debug.LogError("HolyAudioManager|LoadSettings: The number of Mixers (MasterVolume) and data points saved do not match!");
-			}
-			
-			if(data.GroupVolumes.Length == MixerGroups.Length)
-			{
-				for (int i = 0; i < MixerGroups.Length; i++)
-				{
-					MixerGroups[i].audioMixer.SetFloat(MixerGroups[i].name + "Volume", data.GroupVolumes[i]);
-					if(EnableDebug)
-					{
-						Debug.Log("HolyAudioManager|LoadSettings: " + MixerGroups[i].audioMixer.name + "'s -> "  + MixerGroups[i].name + "Volume " + data.GroupVolumes[i]);	
-					}
-				}
-			}
-			else
-			{
-				Debug.LogError("HolyAudioManager|LoadSettings: The number of MixerGroups and data points saved do not match!");
-			}
-		}
-	}
+            else if (data.AudioVersion != GameAudioVersion)
+            {
+                Debug.LogError("HolyAudioManager|LoadSettings: GameAudioVersion does not match! Settings will be reset!");
+                return;
+            }
+
+            if (data.MasterVolumes.Length == MixerDict.Count)
+            {
+                int counter = 0;
+                foreach (KeyValuePair<string, AudioMixer> mixerPair in MixerDict)
+                {
+                    mixerPair.Value.SetFloat("MasterVolume", data.MasterVolumes[counter]);
+                    if (EnableDebug)
+                    {
+                        Debug.Log("HolyAudioManager|LoadSettings: " + mixerPair.Value.name + "'s MasterVolume was set to " + data.MasterVolumes[counter]);
+                    }
+                    counter++;
+                }
+            }
+            else
+            {
+                Debug.LogError("HolyAudioManager|LoadSettings: The number of Mixers (MasterVolume) and data points saved do not match!");
+            }
+
+            if (data.GroupVolumes.Length == MixerGroups.Length)
+            {
+                int counter = 0;
+                foreach (KeyValuePair<string, AudioMixerGroup> groupPair in MixerGroupDict)
+                {
+                    groupPair.Value.audioMixer.SetFloat(groupPair.Value.name + "Volume", data.GroupVolumes[counter]);
+                    if (EnableDebug)
+                    {
+						Debug.Log("HolyAudioManager|Load: " + groupPair.Value.audioMixer.name + "'s -> " + groupPair.Value.name + "Volume was set to " + data.GroupVolumes[counter]);
+                    }
+                    counter++;
+                }
+            }
+            else
+            {
+                Debug.LogError("HolyAudioManager|LoadSettings: The number of MixerGroups and data points saved do not match!");
+            }
+        }
+    }
 	
 	
 	// UI Interface
 	// Get Master and Group Volumes
 	public float GetMixerMasterVolume(string mixerName)
-	{
-		AudioMixer m = Array.Find(Mixers, mixer => mixer.name == mixerName);
+	{		
+		AudioMixer mixer;
 		float volume;
-		if (m == null)
+		if(MixerDict.TryGetValue(mixerName, out mixer))
 		{
-			Debug.LogError("HolyAudioManager|GetMixerMasterVolume: No Mixer found by name: " + mixerName);
-			return -69f;
-		}
-		else if(m.GetFloat("MasterVolume", out volume))
-		{
-			return volume;
+			if(mixer.GetFloat("MasterVolume", out volume))
+			{
+				
+				return volume;
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|GetMixerMasterVolume: MasterVolume parameter not found!");
+				return -99f;
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|GetMixerMasterVolume: MasterVolume parameter not found!");
-			return -69f;
+			Debug.LogError("HolyAudioManager|GetMixerMasterVolume: No Mixer found by name: " + mixerName);
+			return -99f;
 		}
 	}
 	public float GetMixerMasterVolume(AudioMixer mixer)
@@ -865,45 +875,55 @@ public class HolyAudioManager : MonoBehaviour
 		else
 		{
 			Debug.LogError("HolyAudioManager|GetMixerMasterVolume: MasterVolume parameter not found!");
-			return -69f;
+			return -99f;
 		}
 	}
 	public float GetMixerMasterVolume(int index)
 	{
+		AudioMixer mixer;
 		float volume;
-		if (index >= Mixers.Length)
+		if (index < MixerDict.Count && !(index < 0))
 		{
-			Debug.LogError("HolyAudioManager|GetMixerMasterVolume: Index out of bounds");
-			return 0;
-		}
-		else if(Mixers[index].GetFloat("MasterVolume", out volume))
-		{
-			return volume;
+			mixer = MixerDict.ElementAt(index).Value;
+			if (mixer.GetFloat("MasterVolume", out volume))
+			{
+
+				return volume;
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|GetMixerMasterVolume: MasterVolume parameter not found!");
+				return -99f;
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|GetMixerMasterVolume: MasterVolume parameter not found!");
-			return -69f;
+			Debug.LogError("HolyAudioManager|GetMixerMasterVolume: No Mixer found at index " + index);
+			return -99f;
 		}
 	}
 
 	public float GetMixerGroupVolume(string mixerGroupName)
 	{
-		AudioMixerGroup g = Array.Find(MixerGroups, group => group.name == mixerGroupName);
+		AudioMixerGroup group;
 		float volume;
-		if (g == null)
+		if (MixerGroupDict.TryGetValue(mixerGroupName, out group))
 		{
-			Debug.LogError("HolyAudioManager|GetMixerGroupVolume: No MixerGroup found by name: " + mixerGroupName);
-			return -69f;
-		}
-		else if (g.audioMixer.GetFloat(g.name + "Volume", out volume))
-		{
-			return volume;
+			if (group.audioMixer.GetFloat(group.name + "Volume", out volume))
+			{
+
+				return volume;
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|GetMixerGroupVolume: " + group.name + "Volume parameter not found!");
+				return -99f;
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|GetMixerGroupVolume: " + g.name + "Volume " + " parameter not found!");
-			return -69f;
+			Debug.LogError("HolyAudioManager|GetMixerGroupVolume: No MixerGroup found by name " + mixerGroupName);
+			return -99f;
 		}
 	}
 	public float GetMixerGroupVolume(AudioMixerGroup mixerGroup)
@@ -915,79 +935,104 @@ public class HolyAudioManager : MonoBehaviour
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|GetMixerGroupVolume: " + mixerGroup.name + "Volume " + " parameter not found!");
-			return -69f;
+			Debug.LogError("HolyAudioManager|GetMixerGroupVolume: " + mixerGroup.name + "Volume parameter not found!");
+			return -99f;
 		}
 	}
 	public float GetMixerGroupVolume(int index)
 	{
+		AudioMixerGroup group;
 		float volume;
-		if (index >= MixerGroups.Length)
+		if (index < MixerGroupDict.Count && !(index < 0))
 		{
-			Debug.LogError("HolyAudioManager|GetMixerGroupVolume: Index out of bounds");
-			return -69f;
-		}
-		else if(MixerGroups[index].audioMixer.GetFloat(MixerGroups[index].name + "Volume", out volume))
-		{
-			return volume;
+			group = MixerGroupDict.ElementAt(index).Value;
+			if (group.audioMixer.GetFloat(group.name + "Volume", out volume))
+			{
+
+				return volume;
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|GetMixerGroupVolume: " + group.name + "Volume parameter not found!");
+				return -99f;
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|GetMixerGroupVolume: " + MixerGroups[index].name + "Volume " + " parameter not found!");
-			return -69f;
+			Debug.LogError("HolyAudioManager|GetMixerGroupVolume: No MixerGroup found at index " + index);
+			return -99f;
 		}
 	}
 	
-	
+
 	// Set Master and Group Volumes
 	public void SetMixerMasterVolume(string mixerName, float rawVolume)
 	{
-		AudioMixer m = Array.Find(Mixers, mixer => mixer.name == mixerName);
-		if (m == null)
+		AudioMixer mixer;
+		if (MixerDict.TryGetValue(mixerName, out mixer))
 		{
-			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: No Mixer found by name: " + mixerName);
-		}
-		else if (m.SetFloat("MasterVolume", rawVolume))
-		{
-			return;
+			if (mixer.SetFloat("MasterVolume", rawVolume))
+			{
+				if (EnableDebug)
+				{
+					Debug.Log("HolyAudioManager|SetMixerMasterVolume: " + mixerName + " Mixer's volume was set to " + rawVolume + "dB");
+				}
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|SetMixerMasterVolume: MasterVolume parameter not found!");
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: MasterVolume parameter not found!");
+			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: No Mixer found by name " + mixerName);
 		}
 	}
 	public void SetMixerMasterVolume(string mixerName, int percentVolume)
 	{
-		AudioMixer m = Array.Find(Mixers, mixer => mixer.name == mixerName);
-		if (m == null)
+		AudioMixer mixer;
+		if (MixerDict.TryGetValue(mixerName, out mixer))
 		{
-			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: No Mixer found by name: " + mixerName);
-		}
-		else if (m.SetFloat("MasterVolume", PercentToDecibles(percentVolume)))
-		{
-			return;
+			if (mixer.SetFloat("MasterVolume", PercentToDecibles(percentVolume)))
+			{
+				if (EnableDebug)
+				{
+					Debug.Log("HolyAudioManager|SetMixerMasterVolume: " + mixerName + " Mixer's volume was set to " + percentVolume + "%");
+				}
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|SetMixerMasterVolume: MasterVolume parameter not found!");
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: MasterVolume parameter not found!");
+			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: No Mixer found by name " + mixerName);
 		}
 	}
 	public void SetMixerMasterVolume(AudioMixer mixer, float rawVolume)
 	{
 		if (mixer.SetFloat("MasterVolume", rawVolume)) 
 		{
-			return;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyAudioManager|SetMixerMasterVolume: " + mixer.name + " Mixer's volume was set to " + rawVolume + "dB");
+			}
 		}
 		else
 		{
 			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: MasterVolume parameter was not found!");
 		}
+		
 	}
 	public void SetMixerMasterVolume(AudioMixer mixer, int percentVolume)
 	{
 		if (mixer.SetFloat("MasterVolume", PercentToDecibles(percentVolume))) 
 		{
-			return;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyAudioManager|SetMixerMasterVolume: " + mixer.name + " Mixer's volume was set to " + percentVolume + "%");
+			}
 		}
 		else
 		{
@@ -996,66 +1041,93 @@ public class HolyAudioManager : MonoBehaviour
 	}
 	public void SetMixerMasterVolume(int index, float rawVolume)
 	{
-		if (index >= Mixers.Length)
+		AudioMixer mixer;
+		if (index < MixerDict.Count && !(index < 0))
 		{
-			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: Index out of bounds");
-		}
-		else if (Mixers[index].SetFloat("MasterVolume", rawVolume))
-		{
-			return;
+			mixer = MixerDict.ElementAt(index).Value;
+			if (mixer.SetFloat("MasterVolume", rawVolume))
+			{
+				if (EnableDebug)
+				{
+					Debug.Log("HolyAudioManager|SetMixerMasterVolume: " + mixer.name + " mixer's volume was set to " + rawVolume + "dB");
+				}
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|SetMixerMasterVolume: MasterVolume parameter was not found!");
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: MasterVolume parameter was not found!");
+			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: Index out of bounds");
 		}
 	}
 	public void SetMixerMasterVolume(int index, int percentVolume)
 	{
-		if (index >= Mixers.Length)
+		AudioMixer mixer;
+		if (index < MixerDict.Count && !(index < 0))
 		{
-			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: Index out of bounds");
-		}
-		else if (Mixers[index].SetFloat("MasterVolume", PercentToDecibles(percentVolume)))
-		{
-			return;
+			mixer = MixerDict.ElementAt(index).Value;
+			if (mixer.SetFloat("MasterVolume", PercentToDecibles(percentVolume)))
+			{
+				if (EnableDebug)
+				{
+					Debug.Log("HolyAudioManager|SetMixerMasterVolume: " + mixer.name + " mixer's volume was set to " + percentVolume + "%");
+				}
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|SetMixerMasterVolume: MasterVolume parameter was not found!");
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: MasterVolume parameter was not found!");
+			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: Index out of bounds");
 		}
 	}
 
 	public void SetMixerGroupVolume(string mixerGroupName, float rawVolume)
 	{
-		AudioMixerGroup g = Array.Find(MixerGroups, group => group.name == mixerGroupName);
-		if (g == null)
+		AudioMixerGroup group;
+		if (MixerGroupDict.TryGetValue(mixerGroupName, out group))
 		{
-			Debug.LogError("HolyAudioManager|SetMixerGroupVolume: No MixerGroup found by name " + mixerGroupName);
-		}
-		else if(g.audioMixer.SetFloat(g.name + "Volume", rawVolume))
-		{
-			return;
+			if (group.audioMixer.SetFloat(group.name + "Volume", rawVolume))
+			{
+				if (EnableDebug)
+				{
+					Debug.Log("HolyAudioManager|SetMixerGroupVolume: " + group.name + " MixerGroup's volume was set to " + rawVolume + "dB");
+				}
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|SetMixerGroupVolume: " + group.name + "Volume parameter not found!");
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|SetMixerGroupVolume: " + g.name + "Volume " + " parameter not found!");
+			Debug.LogError("HolyAudioManager|SetMixerGroupVolume: No MixerGroup found by name " + mixerGroupName);
 		}
-		
 	}
 	public void SetMixerGroupVolume(string mixerGroupName, int percentVolume)
 	{
-		AudioMixerGroup g = Array.Find(MixerGroups, group => group.name == mixerGroupName);
-		if (g == null)
+		AudioMixerGroup group;
+		if (MixerGroupDict.TryGetValue(mixerGroupName, out group))
 		{
-			Debug.LogError("HolyAudioManager|SetMixerGroupVolume: No MixerGroup found by name " + mixerGroupName);
-		}
-		else if(g.audioMixer.SetFloat(g.name + "Volume", PercentToDecibles(percentVolume)))
-		{
-			return;
+			if (group.audioMixer.SetFloat(group.name + "Volume", PercentToDecibles(percentVolume)))
+			{
+				if (EnableDebug)
+				{
+					Debug.Log("HolyAudioManager|SetMixerGroupVolume: " + group.name + " MixerGroup's volume was set to " + percentVolume + "%");
+				}
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|SetMixerGroupVolume: " + group.name + "Volume parameter not found!");
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|SetMixerGroupVolume: " + g.name + "Volume " + " parameter not found!");
+			Debug.LogError("HolyAudioManager|SetMixerGroupVolume: No MixerGroup found by name " + mixerGroupName);
 		}
 	}
 	public void SetMixerGroupVolume(AudioMixerGroup mixerGroup, float rawVolume)
@@ -1082,32 +1154,48 @@ public class HolyAudioManager : MonoBehaviour
 	}
 	public void SetMixerGroupVolume(int index, int percentVolume)
 	{
-		if (index >= MixerGroups.Length)
+		AudioMixerGroup group;
+		if (index < MixerGroupDict.Count && !(index < 0))
 		{
-			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: Index out of bounds");
-		}
-		else if (MixerGroups[index].audioMixer.SetFloat(MixerGroups[index].name + "Volume", PercentToDecibles(percentVolume)))
-		{
-			return;
+			group = MixerGroupDict.ElementAt(index).Value;
+			if (group.audioMixer.SetFloat(group.name + "Volume", PercentToDecibles(percentVolume)))
+			{
+				if (EnableDebug)
+				{
+					Debug.Log("HolyAudioManager|SetMixerGroupVolume: " + group.name + " MixerGroup's volume was set to " + percentVolume + "%");
+				}
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|SetMixerGroupVolume: " + group.name + "Volume parameter not found!");
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|SetMixerGroupVolume: " + MixerGroups[index].name + "Volume" + " parameter was not found!");
+			Debug.LogError("HolyAudioManager|SetMixerGroupVolume: Index out of bounds");
 		}
 	}
 	public void SetMixerGroupVolume(int index, float rawVolume)
 	{
-		if (index >= MixerGroups.Length)
+		AudioMixerGroup group;
+		if (index < MixerGroupDict.Count && !(index < 0))
 		{
-			Debug.LogError("HolyAudioManager|SetMixerMasterVolume: Index out of bounds");
-		}
-		else if (MixerGroups[index].audioMixer.SetFloat(MixerGroups[index].name + "Volume", rawVolume))
-		{
-			return;
+			group = MixerGroupDict.ElementAt(index).Value;
+			if (group.audioMixer.SetFloat(group.name + "Volume", rawVolume))
+			{
+				if (EnableDebug)
+				{
+					Debug.Log("HolyAudioManager|SetMixerGroupVolume: " + group.name + " MixerGroup's volume was set to " + rawVolume + "dB");
+				}
+			}
+			else
+			{
+				Debug.LogError("HolyAudioManager|SetMixerGroupVolume: " + group.name + "Volume parameter not found!");
+			}
 		}
 		else
 		{
-			Debug.LogError("HolyAudioManager|SetMixerGroupVolume: " + MixerGroups[index].name + "Volume" + " parameter was not found!");
+			Debug.LogError("HolyAudioManager|SetMixerGroupVolume: Index out of bounds");
 		}
 	}
 	
@@ -1127,69 +1215,65 @@ public class HolyAudioManager : MonoBehaviour
 	// Helper methods for checking if Mixers, MixerGroups, Sounds, or SourceSounds exist
 	public bool DoesMixerExist(string mixerName)
 	{
-		AudioMixer mixer = Array.Find(Mixers, mixer => mixer.name == mixerName);
-		if(mixer == null)
+		if (MixerDict.ContainsKey(mixerName))
 		{
-			if(EnableDebug)
-			{
-				Debug.LogWarning("HolyAudioManager|DoesMixerExist: Mixer " + mixerName + " was not found!");
-			}
-			return false;
+			return true;
 		}
 		else
 		{
-			return true;
+			if (EnableDebug)
+			{
+				Debug.LogWarning("HolyAudioManager|DoesMixerExist: Mixer " + mixerName + " was NOT found!");
+			}
+			return false;
 		}
 	}
 	
 	public bool DoesMixerGroupExist(string mixerGroupName)
 	{
-		AudioMixerGroup group = Array.Find(MixerGroups, group => group.name == mixerGroupName);
-		if (group == null)
+		if (MixerGroupDict.ContainsKey(mixerGroupName))
 		{
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyAudioManager|DoesMixerGroupExist: MixerGroup " + mixerGroupName + " was not found!");
-			}
-			return false;
+			return true;
 		}
 		else
 		{
-			return true;
+			if (EnableDebug)
+			{
+				Debug.LogWarning("HolyAudioManager|DoesMixerGroupExist: MixerGroup " + mixerGroupName + " was NOT found!");
+			}
+			return false;
 		}
 	}
 	
 	public bool DoesSoundExist(string soundName)
 	{
-		HolySound sound = Array.Find(Sounds, sound => sound.ClipName == soundName);
-		if (sound == null)
+		if (SoundDict.ContainsKey(soundName))
 		{
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyAudioManager|DoesSoundExist: Sound " + soundName + " was not found!");
-			}
-			return false;
+			return true;
 		}
 		else
 		{
-			return true;
+			if (EnableDebug)
+			{
+				Debug.LogWarning("HolyAudioManager|DoesSoundExist: Sound " + soundName + " was NOT found!");
+			}
+			return false;
 		}
 	}
 	
 	public bool DoesSourceSoundExist(string sourceSoundName)
-	{
-		HolySourceSound sound = Array.Find(SourceSounds, sound => sound.ClipName == sourceSoundName);
-		if (sound == null)
+	{		
+		if (SourceSoundDict.ContainsKey(sourceSoundName))
 		{
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyAudioManager|DoesSourceSoundExist: SourceSound " + sourceSoundName + " was not found!");
-			}
-			return false;
+			return true;
 		}
 		else
 		{
-			return true;
+			if (EnableDebug)
+			{
+				Debug.LogWarning("HolyAudioManager|DoesSourceSoundExist: SourceSound " + sourceSoundName + " was NOT found!");
+			}
+			return false;
 		}
 	}
 

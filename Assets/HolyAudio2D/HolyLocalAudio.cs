@@ -48,8 +48,8 @@ public class HolyLocalAudio : MonoBehaviour
 	// All the important setup happens here.
 	private void Awake()
 	{
-		Mixers = GlobalManager.GetAllMixers();
-		MixerGroups = GlobalManager.GetAllMixerGroups();
+		//Mixers = GlobalManager.GetAllMixers();
+		// MixerGroups = GlobalManager.GetAllMixerGroups();
 		
 		
 		// We set up each sound
