@@ -1,138 +1,167 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
-/*
-	! Version: 0.1.0
-	* 🍑HolyAudio2D
-	* Thank you for using this little project of mine, I hope it is helpful in your endeavors! -holypeach
-	? If you have any questions, suggestions, or find bugs here is the repo https://github.com/holypeachy/HolyAudio2D
-*/
 
 public class HolyLocalAudio : MonoBehaviour
 {
-	// References to other scripts. The Global HolyAudioManager Required for this script to function properly.
-	[SerializeField] public HolyAudioManager GlobalManager;
+	[SerializeField] public HolyAudioManager GlobalHolyAudio;
+
+    // Control Flow. Some options for debugging.
+    [Header("Debugging")]
+
+    [Tooltip("Enabling might help with making sure sounds are being played. Only applied to HolyLocalAudio Sounds.")]
+    [SerializeField] private bool DisableSpatialBlend = false;
+
+    [Tooltip("Applies to optional messages. Important Warnings and Errors will still be displayed but I recommend you keep it on during development or you might miss some things. Make sure to turn it off when you build the project.")]
+    [SerializeField] private bool EnableDebug = true;
+
+    // Sounds and Mixers
+    private Dictionary<string, AudioMixer> MixerDict;
+    private Dictionary<string, AudioMixerGroup> MixerGroupDict;
+
+    [Header("Audio Clips")]
+    [Tooltip("Make your own sounds here. If you need to use custom spatial audio curves use SourceSounds.")]
+    [SerializeField] private HolySound[] Sounds;
+    private Dictionary<string, HolySound> SoundDict;
+
+    [Tooltip("Add your clips as AudioSources first and then add those AudioSources here.")]
+    [SerializeField] private HolySourceSound[] SourceSounds;
+    private Dictionary<string, HolySourceSound> SourceSoundDict;
 
 
-	// Control Flow. Some options for debugging.
-	[Header("Debugging")]
-	
-	[Tooltip("Enabling might help with making sure sounds are being played. Only applied to this Object's Sounds.")]
-	[SerializeField] private bool DisableSpatialBlend = false;
-	
-	[Tooltip("Applies to optional messages. Important Warnings and Errors will still be displayed but I recommend you keep it on during development or you might miss some things. Make sure to turn it off when you build the project.")]
-	[SerializeField] private bool EnableDebug = true;
-	
-
-	// Sounds and Mixers
-	private AudioMixer[] Mixers;
-	private AudioMixerGroup[] MixerGroups;
-	
-	[Header("Audio Clips")]
-	
-	[Tooltip("Make your own sounds here. If you need to use custom spatial audio curves use SourceSounds.")]
-	[SerializeField] private HolySound[] Sounds;
-	
-	[Tooltip("Add your clips as AudioSources first and then add those AudioSources here.")]
-	[SerializeField] private HolySourceSound[] SourceSounds;
-	
-	
-	// Play Control. These keep track of states in all methods for Play, Pause, and Stop.
-	private bool DidExecuteSound = false;
-	private bool DidExecuteSourceSound = false;
-	private bool SoundNotFound = false;
-	private bool SourceSoundNotFound = false;
+    // Play Control. These keep track of states in all methods for Play, Pause, and Stop.
+    private bool DidExecuteSound = false;
+    private bool DidExecuteSourceSound = false;
+    private bool SoundNotFound = false;
+    private bool SourceSoundNotFound = false;
 
 
-	// All the important setup happens here.
-	private void Awake()
+    // Memory
+	private HolySound soundTemp;
+	private HolySourceSound sourceSoundTemp;
+	private AudioMixer mixerTemp;
+	private AudioMixerGroup mixerGroupTemp;
+
+	private int counter;
+	private float volume;
+
+
+    // All the important setup happens here.
+    private void Awake()
+    {
+		MixerDict = GlobalHolyAudio.GetAllMixers();
+		MixerGroupDict = GlobalHolyAudio.GetAllMixerGroups();
+
+        // Initializes Dictionaries
+        SoundDict = new Dictionary<string, HolySound>();
+        SourceSoundDict = new Dictionary<string, HolySourceSound>();
+
+        foreach (HolySound sound in Sounds)
+        {
+            if (SoundDict.ContainsKey(sound.ClipName) && EnableDebug)
+            {
+                Debug.Log("HolyLocalAudio|Awake|Storing Sounds: Sound " + sound.ClipName + " already exists in SoundsDict, there is a duplicate name!");
+                continue;
+            }
+            SoundDict.Add(sound.ClipName, sound);
+        }
+
+        foreach (HolySourceSound sourceSound in SourceSounds)
+        {
+            if (SourceSoundDict.ContainsKey(sourceSound.ClipName) && EnableDebug)
+            {
+                Debug.Log("HolyLocalAudio|Awake|Storing SourceSounds: SourceSound " + sourceSound.ClipName + " already exists in SourceSoundsDict, there is a duplicate name!");
+                continue;
+            }
+            SourceSoundDict.Add(sourceSound.ClipName, sourceSound);
+        }
+
+        foreach (KeyValuePair<string, HolySound> keyValuePair in SoundDict)
+        {
+            soundTemp = keyValuePair.Value;
+            soundTemp.Source = gameObject.AddComponent<AudioSource>();
+
+            soundTemp.Source.outputAudioMixerGroup = soundTemp.MixerGroup;
+            soundTemp.Source.clip = soundTemp.AudioFile;
+
+            soundTemp.Source.bypassEffects = soundTemp.BypassEffects;
+            soundTemp.Source.bypassListenerEffects = soundTemp.BypassListenerEffects;
+            soundTemp.Source.bypassReverbZones = soundTemp.BypassReverbZones;
+
+            soundTemp.Source.playOnAwake = soundTemp.PlayOnAwake;
+            soundTemp.Source.loop = soundTemp.Loop;
+
+            soundTemp.Source.priority = soundTemp.Priority;
+            soundTemp.Source.volume = soundTemp.Volume;
+            soundTemp.Source.pitch = soundTemp.Pitch;
+            soundTemp.Source.panStereo = soundTemp.StereoPan;
+            soundTemp.Source.spatialBlend = soundTemp.SpatialBlend;
+            soundTemp.Source.reverbZoneMix = soundTemp.ReverbZoneMix;
+            soundTemp.Source.dopplerLevel = soundTemp.DopplerLevel;
+            soundTemp.Source.spread = soundTemp.Spread;
+
+            soundTemp.Source.rolloffMode = soundTemp.VolumeRolloff;
+            soundTemp.Source.minDistance = soundTemp.MinDistance;
+            soundTemp.Source.maxDistance = soundTemp.MaxDistance;
+
+            if (soundTemp.PlayOnAwake)
+            {
+                soundTemp.Source.Play();
+            }
+        }
+
+        if (DisableSpatialBlend)
+        {
+            foreach (KeyValuePair<string, HolySound> keyValuePair in SoundDict)
+            {
+                keyValuePair.Value.Source.spatialBlend = 0f;
+            }
+            foreach (KeyValuePair<string, HolySourceSound> keyValuePair in SourceSoundDict)
+            {
+                keyValuePair.Value.Source.spatialBlend = 0f;
+            }
+        }
+    }
+
+
+	// ! Testing
+	private void Start()
 	{
-		//Mixers = GlobalManager.GetAllMixers();
-		// MixerGroups = GlobalManager.GetAllMixerGroups();
 		
-		
-		// We set up each sound
-		foreach (HolySound s in Sounds)
-		{
-			s.Source = gameObject.AddComponent<AudioSource>();
-
-			s.Source.outputAudioMixerGroup = s.MixerGroup;
-			s.Source.clip = s.AudioFile;
-
-			s.Source.bypassEffects = s.BypassEffects;
-			s.Source.bypassListenerEffects = s.BypassListenerEffects;
-			s.Source.bypassReverbZones = s.BypassReverbZones;
-
-			s.Source.playOnAwake = s.PlayOnAwake;
-			s.Source.loop = s.Loop;
-
-			s.Source.priority = s.Priority;
-			s.Source.volume = s.Volume;
-			s.Source.pitch = s.Pitch;
-			s.Source.panStereo = s.StereoPan;
-			s.Source.spatialBlend = s.SpatialBlend;
-			s.Source.reverbZoneMix = s.ReverbZoneMix;
-			s.Source.dopplerLevel = s.DopplerLevel;
-			s.Source.spread = s.Spread;
-
-			s.Source.rolloffMode = s.VolumeRolloff;
-			s.Source.minDistance = s.MinDistance;
-			s.Source.maxDistance = s.MaxDistance;
-
-			if (s.PlayOnAwake)
-			{
-				s.Source.Play();
-			}
-		}
-
-		if (DisableSpatialBlend)
-		{
-			foreach (HolySourceSound s in SourceSounds)
-			{
-				s.Source.spatialBlend = 0f;
-			}
-			foreach (HolySound s in Sounds)
-			{
-				s.Source.spatialBlend = 0f;
-			}
-		}
-
 	}
 
-	// Play
+
+    // Play
 	public void Play(string clipName)
 	{
-		// We look for clip in Sounds
-		HolySound s = Array.Find(Sounds, sound => sound.ClipName == clipName);
-		if (s == null)
+		if(SoundDict.TryGetValue(clipName, out soundTemp))
+		{
+			soundTemp.Source.PlayOneShot(soundTemp.Source.clip);
+			DidExecuteSound = true;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyLocalAudio|Sound|Play: " + clipName + " has played!");
+			}
+		}
+		else
 		{
 			SoundNotFound = true;
 		}
-		else
+		
+		if (SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
 		{
-			s.Source.PlayOneShot(s.Source.clip);
+			sourceSoundTemp.Source.PlayOneShot(sourceSoundTemp.Source.clip);
+			DidExecuteSourceSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyLocalAudio|Sound|Play: " + clipName + " has played!");
+				Debug.Log("HolyLocalAudio|SourceSound|Play: " + clipName + " has played!");
 			}
-			DidExecuteSound = true;
 		}
-
-		// Then we look for clip in SourceSounds
-		HolySourceSound ss = Array.Find(SourceSounds, sound => sound.ClipName == clipName);
-		if (ss == null)
+		else
 		{
 			SourceSoundNotFound = true;
-		}
-		else
-		{
-			ss.Source.PlayOneShot(ss.Source.clip);
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyLocalAudio|SourceSound|Play: " + clipName + " has played!");
-			}
-			DidExecuteSourceSound = true;
 		}
 
 		// Debug
@@ -142,116 +171,105 @@ public class HolyLocalAudio : MonoBehaviour
 		}
 		else if (DidExecuteSound && DidExecuteSourceSound)
 		{
-			Debug.LogWarning("HolyLocalAudio|Play: A clip has been found in Sounds and SourceSounds");
+			Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|Play: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the vars
+		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
 		SourceSoundNotFound = false;
 	}
-
 	public void PlayOnce(string clipName)
 	{
-		// We look for clip in Sounds
-		HolySound s = Array.Find(Sounds, sound => sound.ClipName == clipName);
-		if (s == null)
+		if (SoundDict.TryGetValue(clipName, out soundTemp))
+		{
+			soundTemp.Source.Play();
+			DidExecuteSound = true;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyLocalAudio|Sound|PlayOnce: " + clipName + " has played once!");
+			}
+		}
+		else
 		{
 			SoundNotFound = true;
 		}
-		else
+
+		if (SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
 		{
-			s.Source.Play();
+			sourceSoundTemp.Source.Play();
+			DidExecuteSourceSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyLocalAudio|Sound|PlayOnce: " + clipName + " has played!");
+				Debug.Log("HolyLocalAudio|SourceSound|PlayOnce: " + clipName + " has played once!");
 			}
-			DidExecuteSound = true;
 		}
-
-
-		// Then we look for clip in SourceSounds
-		HolySourceSound ss = Array.Find(SourceSounds, sound => sound.ClipName == clipName);
-		if (ss == null)
+		else
 		{
 			SourceSoundNotFound = true;
-		}
-		else
-		{
-			ss.Source.Play();
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyLocalAudio|PlayOnce: " + clipName + " has played!");
-			}
-			DidExecuteSourceSound = true;
 		}
 
 		// Debug
 		if (SoundNotFound && SourceSoundNotFound)
 		{
-			Debug.LogError("HolyLocalAudio|Sounds & SourceSounds|Play: " + clipName + " does NOT exist!");
+			Debug.LogError("HolyLocalAudio|Sounds&SourceSounds|PlayOnce: " + clipName + " does NOT exist!");
 		}
 		else if (DidExecuteSound && DidExecuteSourceSound)
 		{
-			Debug.LogError("HolyLocalAudio|Play: A clip has been found in Sounds and SourceSounds");
+			Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|PlayOnce: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the vars
+		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
 		SourceSoundNotFound = false;
 	}
+	
 
-
-	// Pause
+    // Pause
 	public void Pause(string clipName)
 	{
-		// We look for clip in Sounds
-		HolySound s = Array.Find(Sounds, sound => sound.ClipName == clipName);
-		if (s == null)
+		if (SoundDict.TryGetValue(clipName, out soundTemp))
+		{
+			soundTemp.Source.Pause();
+			DidExecuteSound = true;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyLocalAudio|Sound|Pause: " + clipName + " has paused!");
+			}
+		}
+		else
 		{
 			SoundNotFound = true;
 		}
-		else
+
+		if (SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
 		{
-			s.Source.Pause();
+			sourceSoundTemp.Source.Pause();
+			DidExecuteSourceSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyAudioManager|Sound|Pause: " + clipName + " has paused!");
+				Debug.Log("HolyLocalAudio|SourceSound|Pause: " + clipName + " has paused!");
 			}
-			DidExecuteSound = true;
 		}
-
-
-		// Then we look for clip in SourceSounds
-		HolySourceSound ss = Array.Find(SourceSounds, sound => sound.ClipName == clipName);
-		if (ss == null)
+		else
 		{
 			SourceSoundNotFound = true;
-		}
-		else
-		{
-			ss.Source.Pause();
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyAudioManager|Pause: " + clipName + " has paused!");
-			}
-			DidExecuteSourceSound = true;
 		}
 
 		// Debug
 		if (SoundNotFound && SourceSoundNotFound)
 		{
-			Debug.LogError("HolyAudioManager|Sounds&SourceSounds|Pause: " + clipName + " does NOT exist!");
+			Debug.LogError("HolyLocalAudio|Sounds&SourceSounds|Pause: " + clipName + " does NOT exist!");
 		}
 		else if (DidExecuteSound && DidExecuteSourceSound)
 		{
-			Debug.LogWarning("HolyAudioManager|Pause: A clip has been found in Sounds and SourceSounds");
+			Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|Pause: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the vars
+		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -262,40 +280,40 @@ public class HolyLocalAudio : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerExist(mixerGroupName))
+			if (!DoesMixerGroupExist(mixerGroupName))
 			{
-				Debug.LogError("HolyAudioManager|PauseAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
+				Debug.LogError("HolyLocalAudio|PauseAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
 			}
 		}
 
-		foreach (HolySound s in Sounds)
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
-			if (s.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
 				continue;
 			}
 			else
 			{
-				s.Source.Pause();
+				sPair.Value.Source.Pause();
 			}
 		}
 
-		foreach (HolySourceSound ss in SourceSounds)
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
 		{
-			if (ss.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
 				continue;
 			}
 			else
 			{
-				ss.Source.Pause();
+				ssPair.Value.Source.Pause();
 			}
 		}
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|PauseAllButMixerGroup: All sounds except from " + mixerGroupName + " have paused!");
+			Debug.Log("HolyLocalAudio|PauseAllButMixerGroup: All sounds except from " + mixerGroupName + " have paused!");
 		}
 	}
 	
@@ -303,102 +321,95 @@ public class HolyLocalAudio : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerExist(mixerGroupName))
+			if (!DoesMixerGroupExist(mixerGroupName))
 			{
-				Debug.LogError("HolyAudioManager|PauseAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
+				Debug.LogError("HolyLocalAudio|PauseAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
 			}
 		}
-		
-		foreach (HolySound s in Sounds)
+
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
-			if (s.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
-				s.Source.Pause();
+				sPair.Value.Source.Pause();
 			}
 		}
 
-		foreach (HolySourceSound ss in SourceSounds)
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
 		{
-			if (ss.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
-				ss.Source.Pause();
+				ssPair.Value.Source.Pause();
 			}
 		}
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|PauseAllFromMixerGroup: Sounds in " + mixerGroupName + " have paused!");
+			Debug.Log("HolyLocalAudio|PauseAllFromMixerGroup: Sounds in " + mixerGroupName + " have paused!");
 		}
 	}
 	
 	public void PauseAll()
 	{
-		foreach (HolySound s in Sounds)
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
-			s.Source.Pause();
+			sPair.Value.Source.Pause();
 		}
-		foreach (HolySourceSound ss in SourceSounds)
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
 		{
-			ss.Source.Pause();
+			ssPair.Value.Source.Pause();
 		}
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|PauseAll: All sounds paused!");
+			Debug.Log("HolyLocalAudio|PauseAll: All sounds paused!");
 		}
 	}
 	
 
-	// Unpause
+    // Unpause
 	public void Unpause(string clipName)
 	{
-		// We look for clip in Sounds
-		HolySound s = Array.Find(Sounds, sound => sound.ClipName == clipName);
-
-		if (s == null)
+		if (SoundDict.TryGetValue(clipName, out soundTemp))
+		{
+			soundTemp.Source.UnPause();
+			DidExecuteSound = true;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyLocalAudio|Sound|Unpause: " + clipName + " has unpaused!");
+			}
+		}
+		else
 		{
 			SoundNotFound = true;
 		}
-		else
+
+		if (SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
 		{
-			s.Source.UnPause();
+			sourceSoundTemp.Source.UnPause();
+			DidExecuteSourceSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyAudioManager|Sound|Pause: " + clipName + " has unpaused!");
+				Debug.Log("HolyLocalAudio|SourceSound|Unpause: " + clipName + " has unpaused!");
 			}
-			DidExecuteSound = true;
 		}
-
-
-		// Then we look for clip in SourceSounds
-		HolySourceSound ss = Array.Find(SourceSounds, sound => sound.ClipName == clipName);
-
-		if (ss == null)
+		else
 		{
 			SourceSoundNotFound = true;
-		}
-		else
-		{
-			ss.Source.UnPause();
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyAudioManager|Sound|Unpause: " + clipName + " has unpaused!");
-			}
-			DidExecuteSourceSound = true;
 		}
 
 		// Debug
 		if (SoundNotFound && SourceSoundNotFound)
 		{
-			Debug.LogError("HolyAudioManager|Sounds&SourceSounds|Unpause: " + clipName + " does NOT exist!");
+			Debug.LogError("HolyLocalAudio|Sounds&SourceSounds|Unpause: " + clipName + " does NOT exist!");
 		}
-		else if (DidExecuteSound && DidExecuteSourceSound && EnableDebug)
+		else if (DidExecuteSound && DidExecuteSourceSound)
 		{
-			Debug.LogWarning("HolyAudioManager|Unpause: A clip has been found in Sounds and SourceSounds");
+			Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|Unpause: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the vars
+		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -409,40 +420,40 @@ public class HolyLocalAudio : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerExist(mixerGroupName))
+			if (!DoesMixerGroupExist(mixerGroupName))
 			{
-				Debug.LogError("HolyAudioManager|UnpauseAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
+				Debug.LogError("HolyLocalAudio|UnpauseAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
 			}
 		}
-		
-		foreach (HolySound s in Sounds)
+
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
-			if (s.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
 				continue;
 			}
 			else
 			{
-				s.Source.UnPause();
+				sPair.Value.Source.UnPause();
 			}
 		}
 
-		foreach (HolySourceSound ss in SourceSounds)
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
 		{
-			if (ss.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
 				continue;
 			}
 			else
 			{
-				ss.Source.UnPause();
+				ssPair.Value.Source.UnPause();
 			}
 		}
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|UnpauseAllButMixerGroup: All sounds except from " + mixerGroupName + " have unpaused!");
+			Debug.Log("HolyLocalAudio|UnpauseAllButMixerGroup: All sounds except from " + mixerGroupName + " have unpaused!");
 		}
 	}
 
@@ -450,318 +461,303 @@ public class HolyLocalAudio : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerExist(mixerGroupName))
+			if (!DoesMixerGroupExist(mixerGroupName))
 			{
-				Debug.LogError("HolyAudioManager|UnpauseAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
+				Debug.LogError("HolyLocalAudio|UnpauseAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
 			}
 		}
-		
-		foreach (HolySound s in Sounds)
+
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
-			if (s.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
-				s.Source.UnPause();
+				sPair.Value.Source.UnPause();
 			}
 		}
 
-		foreach (HolySourceSound ss in SourceSounds)
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
 		{
-			if (ss.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
-				ss.Source.UnPause();
+				ssPair.Value.Source.UnPause();
 			}
 		}
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|UnpauseFromMixerGroup: Sounds in " + mixerGroupName + " have unpaused!");
+			Debug.Log("HolyLocalAudio|UnpauseAllFromMixerGroup: Sounds in " + mixerGroupName + " have unpaused!");
 		}
 	}
 
 	public void UnpauseAll()
 	{
-		foreach (HolySound s in Sounds)
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
-			s.Source.UnPause();
+			sPair.Value.Source.UnPause();
 		}
-		foreach (HolySourceSound ss in SourceSounds)
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
 		{
-			ss.Source.UnPause();
+			ssPair.Value.Source.UnPause();
 		}
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|UnpauseAll: All sounds unpaused!");
+			Debug.Log("HolyLocalAudio|UnpauseAll: All sounds unpaused!");
 		}
 	}
 	
 
-	// Stop
+    // Stop
+
 	public void Stop(string clipName)
 	{
-		// We look for clip in Sounds
-		HolySound s = Array.Find(Sounds, sound => sound.ClipName == clipName);
-
-		if (s == null)
+		if (SoundDict.TryGetValue(clipName, out soundTemp))
+		{
+			soundTemp.Source.Stop();
+			DidExecuteSound = true;
+			if (EnableDebug)
+			{
+				Debug.Log("HolyLocalAudio|Sound|Stop: " + clipName + " has stopped!");
+			}
+		}
+		else
 		{
 			SoundNotFound = true;
 		}
-		else
+
+		if (SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
 		{
-			s.Source.Stop();
+			sourceSoundTemp.Source.Stop();
+			DidExecuteSourceSound = true;
 			if (EnableDebug)
 			{
-				Debug.LogWarning("HolyAudioManager|Sound|Stop: " + clipName + " has stopped!");
+				Debug.Log("HolyLocalAudio|SourceSound|Stop: " + clipName + " has stopped!");
 			}
-			DidExecuteSound = true;
 		}
-
-
-		// Then we look for clip in SourceSounds
-		HolySourceSound ss = Array.Find(SourceSounds, sound => sound.ClipName == clipName);
-
-		if (ss == null)
+		else
 		{
 			SourceSoundNotFound = true;
-		}
-		else
-		{
-			ss.Source.Stop();
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyAudioManager|Sound|Stop: " + clipName + " has stopped!");
-			}
-			DidExecuteSourceSound = true;
 		}
 
 		// Debug
 		if (SoundNotFound && SourceSoundNotFound)
 		{
-			Debug.LogError("HolyAudioManager|Sounds&SourceSounds|Stop: " + clipName + " does NOT exist!");
+			Debug.LogError("HolyLocalAudio|Sounds&SourceSounds|Stop: " + clipName + " does NOT exist!");
 		}
 		else if (DidExecuteSound && DidExecuteSourceSound)
 		{
-			Debug.LogWarning("HolyAudioManager|Stop: A clip has been found in Sounds and SourceSounds");
+			Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|Stop: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the vars
+		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
 		SourceSoundNotFound = false;
 	}
-	
+
 	public void StopAllButMixerGroup(string mixerGroupName)
 	{
-        if (EnableDebug)
-        {
-            if (!DoesMixerExist(mixerGroupName))
-            {
-                Debug.LogError("HolyAudioManager|StopAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
-                return;
-            }
-        }
-		foreach (HolySound s in Sounds)
+		if (EnableDebug)
 		{
-			if(s.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (!DoesMixerGroupExist(mixerGroupName))
 			{
-				continue;
-			}
-			else
-			{
-				s.Source.Stop();
+				Debug.LogError("HolyLocalAudio|StopAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
+				return;
 			}
 		}
 
-		foreach (HolySourceSound ss in SourceSounds)
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
-			if (ss.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
 				continue;
 			}
 			else
 			{
-				ss.Source.Stop();
+				sPair.Value.Source.Stop();
+			}
+		}
+
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
+		{
+			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
+			{
+				continue;
+			}
+			else
+			{
+				ssPair.Value.Source.Stop();
 			}
 		}
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|StopAllButMixerGroup: All sounds except from " + mixerGroupName + " have stopped!");
+			Debug.Log("HolyLocalAudio|StopAllButMixerGroup: All sounds except from " + mixerGroupName + " have stopped!");
 		}
-		
 	}
 	
 	public void StopAllFromMixerGroup(string mixerGroupName)
 	{
-        if (EnableDebug)
-        {
-            if (!DoesMixerExist(mixerGroupName))
-            {
-                Debug.LogError("HolyAudioManager|StopAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
-                return;
-            }
-        }
-		foreach (HolySound s in Sounds)
+		if (EnableDebug)
 		{
-			if (s.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (!DoesMixerGroupExist(mixerGroupName))
 			{
-				s.Source.Stop();
+				Debug.LogError("HolyLocalAudio|StopAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
+				return;
 			}
 		}
 
-		foreach (HolySourceSound ss in SourceSounds)
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
-			if (ss.Source.outputAudioMixerGroup.name == mixerGroupName)
+			if (sPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
 			{
-				ss.Source.Stop();
+				sPair.Value.Source.Stop();
+			}
+		}
+
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
+		{
+			if (ssPair.Value.Source.outputAudioMixerGroup.name == mixerGroupName)
+			{
+				ssPair.Value.Source.Stop();
 			}
 		}
 
 		if (EnableDebug)
 		{
-			Debug.LogWarning("HolyAudioManager|StopAllFromMixerGroup: Sounds in " + mixerGroupName + " have stopped!");
+			Debug.Log("HolyLocalAudio|StopAllFromMixerGroup: Sounds in " + mixerGroupName + " have stopped!");
 		}
 	}
 	
 	public void StopAll()
 	{
-		foreach (HolySound s in Sounds)
+		foreach (KeyValuePair<string, HolySound> sPair in SoundDict)
 		{
-			s.Source.Stop();
+			sPair.Value.Source.Stop();
 		}
-		foreach (HolySourceSound ss in SourceSounds)
+		foreach (KeyValuePair<string, HolySourceSound> ssPair in SourceSoundDict)
 		{
-			ss.Source.Stop();
-		}
-
-		if(EnableDebug)
-		{
-			Debug.LogWarning("HolyAudioManager|StopAll: All sounds stopped!");
-		}
-	}
-
-
-	// Get MixerGroup(s)
-	public AudioMixer GetMixer(string mixerName)
-	{
-		foreach (AudioMixer mixer in Mixers)
-		{
-			if (mixer.name == mixerName)
-			{
-				return mixer;
-			}
+			ssPair.Value.Source.Stop();
 		}
 
-		Debug.LogError("HolyLocalAudio|GetMixer: " + mixerName + " does NOT exist!");
-		return null;
-	}
-
-	public AudioMixer[] GetAllMixers()
-	{
-		return Mixers;
-	}
-
-	public AudioMixerGroup GetMixerGroup(string mixerGroupName)
-	{
-		foreach (AudioMixerGroup group in MixerGroups)
+		if (EnableDebug)
 		{
-			if (group.name == mixerGroupName)
-			{
-				return group;
-			}
-		}
-
-		Debug.LogError("HolyLocalAudio|GetMixerGroup: " + mixerGroupName + " does NOT exist!");
-		return null;
-	}
-
-	public AudioMixerGroup[] GetAllMixerGroups()
-	{
-		return MixerGroups;
-	}
-
-
-	// Helper methods for converting to and from dB(raw mixer volume) and Percent (0-100)
-	public float DeciblesToPercent(float rawVolume)
-	{
-		return Math.Abs((rawVolume / -80f) - 1f) * 100;
-	}
-
-	public float PercentToDecibles(float percentVolume)
-	{
-		return (percentVolume / 100 * 80) - 80;
-	}
-
-
-	// Helper methods for checking if Mixers, MixerGroups, Sounds, or SourceSounds exist
-	public bool DoesMixerExist(string mixerName)
-	{
-		AudioMixer mixer = Array.Find(Mixers, mixer => mixer.name == mixerName);
-		if (mixer == null)
-		{
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyLocalAudio|DoesMixerExist: Mixer " + mixerName + " was not found!");
-			}
-			return false;
-		}
-		else
-		{
-			return true;
+			Debug.Log("HolyLocalAudio|StopAll: All sounds stopped!");
 		}
 	}
 
-	public bool DoesMixerGroupExist(string mixerGroupName)
-	{
-		AudioMixerGroup group = Array.Find(MixerGroups, group => group.name == mixerGroupName);
-		if (group == null)
-		{
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyLocalAudio|DoesMixerGroupExist: MixerGroup " + mixerGroupName + " was not found!");
-			}
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
 
-	public bool DoesSoundExist(string soundName)
-	{
-		HolySound sound = Array.Find(Sounds, sound => sound.ClipName == soundName);
-		if (sound == null)
-		{
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyLocalAudio|DoesSoundExist: Sound " + soundName + " was not found!");
-			}
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
+    // Get MixerGroup(s)
+    public AudioMixer GetMixer(string mixerName)
+    {
+        if (MixerDict.TryGetValue(mixerName, out mixerTemp))
+        {
+            return mixerTemp;
+        }
 
-	public bool DoesSourceSoundExist(string sourceSoundName)
-	{
-		HolySourceSound sound = Array.Find(SourceSounds, sound => sound.ClipName == sourceSoundName);
-		if (sound == null)
-		{
-			if (EnableDebug)
-			{
-				Debug.LogWarning("HolyLocalAudio|DoesSourceSoundExist: SourceSound " + sourceSoundName + " was not found!");
-			}
-			return false;
-		}
-		else
-		{
-			return true;
-		}
-	}
+        Debug.LogError("HolyLocalAudio|GetMixer: " + mixerName + " does NOT exist!");
+        return null;
+    }
+
+    public Dictionary<string, AudioMixer> GetAllMixers()
+    {
+        return MixerDict;
+    }
+
+    public AudioMixerGroup GetMixerGroup(string mixerGroupName)
+    {
+        if (MixerGroupDict.TryGetValue(mixerGroupName, out mixerGroupTemp))
+        {
+            return mixerGroupTemp;
+        }
+
+        Debug.LogError("HolyLocalAudio|GetMixerGroup: " + mixerGroupName + " does NOT exist!");
+        return null;
+    }
+
+    public Dictionary<string, AudioMixerGroup> GetAllMixerGroups()
+    {
+        return MixerGroupDict;
+    }
+
+
+    // Helper methods for converting to and from dB(raw mixer volume) and Percent (0-100)
+    public float DeciblesToPercent(float rawVolume)
+    {
+        return Math.Abs((rawVolume / -80f) - 1f) * 100;
+    }
+
+    public float PercentToDecibles(float percentVolume)
+    {
+        return (percentVolume / 100 * 80) - 80;
+    }
+
+
+    // Helper methods for checking if Mixers, MixerGroups, Sounds, or SourceSounds exist
+    public bool DoesMixerExist(string mixerName)
+    {
+        if (MixerDict.ContainsKey(mixerName))
+        {
+            return true;
+        }
+        else
+        {
+            if (EnableDebug)
+            {
+                Debug.LogWarning("HolyLocalAudio|DoesMixerExist: Mixer " + mixerName + " was NOT found!");
+            }
+            return false;
+        }
+    }
+
+    public bool DoesMixerGroupExist(string mixerGroupName)
+    {
+        if (MixerGroupDict.ContainsKey(mixerGroupName))
+        {
+            return true;
+        }
+        else
+        {
+            if (EnableDebug)
+            {
+                Debug.LogWarning("HolyLocalAudio|DoesMixerGroupExist: MixerGroup " + mixerGroupName + " was NOT found!");
+            }
+            return false;
+        }
+    }
+
+    public bool DoesSoundExist(string soundName)
+    {
+        if (SoundDict.ContainsKey(soundName))
+        {
+            return true;
+        }
+        else
+        {
+            if (EnableDebug)
+            {
+                Debug.LogWarning("HolyLocalAudio|DoesSoundExist: Sound " + soundName + " was NOT found!");
+            }
+            return false;
+        }
+    }
+
+    public bool DoesSourceSoundExist(string sourceSoundName)
+    {
+        if (SourceSoundDict.ContainsKey(sourceSoundName))
+        {
+            return true;
+        }
+        else
+        {
+            if (EnableDebug)
+            {
+                Debug.LogWarning("HolyLocalAudio|DoesSourceSoundExist: SourceSound " + sourceSoundName + " was NOT found!");
+            }
+            return false;
+        }
+    }
 
 }
