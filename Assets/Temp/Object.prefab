@@ -147,13 +147,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   GlobalManager: {fileID: 0}
-  EnableDebug: 1
   DisableSpatialBlend: 0
+  EnableDebug: 1
   Sounds:
-  - ClipName: Theme
+  - ClipName: MJ
     Source: {fileID: 0}
     MixerGroup: {fileID: 3156385425310214127, guid: 4021fb820f2106c4b9a2ea50d92d7457, type: 2}
-    AudioFile: {fileID: 8300000, guid: aa034b09bd275cc4c96d2e352be3fb0f, type: 3}
+    AudioFile: {fileID: 8300000, guid: 619c1e89ec5ed814883ea4da5198886e, type: 3}
     BypassEffects: 0
     BypassListenerEffects: 0
     BypassReverbZones: 0
