@@ -22,3 +22,4 @@ Latest Version: 0.1.0 (To Be Released)
 ### For Sean (The Intern):
 - Add function to change looping of sounds.
 - Add method to get length of clip.
+- Get clip by name method.
