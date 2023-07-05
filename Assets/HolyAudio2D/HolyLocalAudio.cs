@@ -6,9 +6,10 @@ using UnityEngine.Audio;
 
 public class HolyLocalAudio : MonoBehaviour
 {
-	[SerializeField] public HolyAudioManager GlobalHolyAudio;
+	// Reference to the HolyAudioManager
+	[HideInInspector] public HolyAudioManager GlobalHolyAudioManager;
 
-    // Control Flow. Some options for debugging.
+    // Control Flow and some options for debugging.
     [Header("Debugging")]
 
     [Tooltip("Enabling might help with making sure sounds are being played. Only applied to HolyLocalAudio Sounds.")]
@@ -17,10 +18,7 @@ public class HolyLocalAudio : MonoBehaviour
     [Tooltip("Applies to optional messages. Important Warnings and Errors will still be displayed but I recommend you keep it on during development or you might miss some things. Make sure to turn it off when you build the project.")]
     [SerializeField] private bool EnableDebug = true;
 
-    // Sounds and Mixers
-    private Dictionary<string, AudioMixer> MixerDict;
-    private Dictionary<string, AudioMixerGroup> MixerGroupDict;
-
+    //Sounds.
     [Header("Audio Clips")]
     [Tooltip("Make your own sounds here. If you need to use custom spatial audio curves use SourceSounds.")]
     [SerializeField] private HolySound[] Sounds;
@@ -31,15 +29,15 @@ public class HolyLocalAudio : MonoBehaviour
     private Dictionary<string, HolySourceSound> SourceSoundDict;
 
 
-    // Play Control. These keep track of states in all methods for Play, Pause, and Stop.
+    // Reproduction Control. These keep track of states in all methods for Play, Pause, and Stop.
     private bool DidExecuteSound = false;
     private bool DidExecuteSourceSound = false;
     private bool SoundNotFound = false;
     private bool SourceSoundNotFound = false;
 
 
-    // Memory
-	private HolySound soundTemp;
+    // Memory. Variables that hold temporary information throughout this class.
+    private HolySound soundTemp;
 	private HolySourceSound sourceSoundTemp;
 	private AudioMixer mixerTemp;
 	private AudioMixerGroup mixerGroupTemp;
@@ -51,13 +49,11 @@ public class HolyLocalAudio : MonoBehaviour
     // All the important setup happens here.
     private void Awake()
     {
-		MixerDict = GlobalHolyAudio.GetAllMixers();
-		MixerGroupDict = GlobalHolyAudio.GetAllMixerGroups();
-
         // Initializes Dictionaries
         SoundDict = new Dictionary<string, HolySound>();
         SourceSoundDict = new Dictionary<string, HolySourceSound>();
 
+        // Adds the Sounds to the Sounds Dictionary
         foreach (HolySound sound in Sounds)
         {
             if (SoundDict.ContainsKey(sound.ClipName) && EnableDebug)
@@ -68,6 +64,7 @@ public class HolyLocalAudio : MonoBehaviour
             SoundDict.Add(sound.ClipName, sound);
         }
 
+        // Adds the Source Sounds to the SourceSounds Dictionary
         foreach (HolySourceSound sourceSound in SourceSounds)
         {
             if (SourceSoundDict.ContainsKey(sourceSound.ClipName) && EnableDebug)
@@ -78,6 +75,7 @@ public class HolyLocalAudio : MonoBehaviour
             SourceSoundDict.Add(sourceSound.ClipName, sourceSound);
         }
 
+        // Adds an AudioSource component to the object for each Sound
         foreach (KeyValuePair<string, HolySound> keyValuePair in SoundDict)
         {
             soundTemp = keyValuePair.Value;
@@ -126,9 +124,9 @@ public class HolyLocalAudio : MonoBehaviour
     }
 
 
-	// ! Testing
 	private void Start()
 	{
+        GlobalHolyAudioManager = HolyAudioManager.HolyAudioManagerInstance;
 		
 	}
 
@@ -174,12 +172,12 @@ public class HolyLocalAudio : MonoBehaviour
 			Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|Play: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
 		SourceSoundNotFound = false;
 	}
+	
 	public void PlayOnce(string clipName)
 	{
 		if (SoundDict.TryGetValue(clipName, out soundTemp))
@@ -220,7 +218,6 @@ public class HolyLocalAudio : MonoBehaviour
 			Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|PlayOnce: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -269,7 +266,6 @@ public class HolyLocalAudio : MonoBehaviour
 			Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|Pause: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -409,7 +405,6 @@ public class HolyLocalAudio : MonoBehaviour
 			Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|Unpause: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -550,7 +545,6 @@ public class HolyLocalAudio : MonoBehaviour
 			Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|Stop: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -652,34 +646,22 @@ public class HolyLocalAudio : MonoBehaviour
     // Get MixerGroup(s)
     public AudioMixer GetMixer(string mixerName)
     {
-        if (MixerDict.TryGetValue(mixerName, out mixerTemp))
-        {
-            return mixerTemp;
-        }
-
-        Debug.LogError("HolyLocalAudio|GetMixer: " + mixerName + " does NOT exist!");
-        return null;
+		return HolyAudioManager.HolyAudioManagerInstance.GetMixer(mixerName);
     }
 
     public Dictionary<string, AudioMixer> GetAllMixers()
     {
-        return MixerDict;
+		return HolyAudioManager.HolyAudioManagerInstance.GetAllMixers();
     }
 
     public AudioMixerGroup GetMixerGroup(string mixerGroupName)
     {
-        if (MixerGroupDict.TryGetValue(mixerGroupName, out mixerGroupTemp))
-        {
-            return mixerGroupTemp;
-        }
-
-        Debug.LogError("HolyLocalAudio|GetMixerGroup: " + mixerGroupName + " does NOT exist!");
-        return null;
+		return HolyAudioManager.HolyAudioManagerInstance.GetMixerGroup(mixerGroupName);
     }
 
     public Dictionary<string, AudioMixerGroup> GetAllMixerGroups()
     {
-        return MixerGroupDict;
+		return HolyAudioManager.HolyAudioManagerInstance.GetAllMixerGroups();
     }
 
 
@@ -695,39 +677,19 @@ public class HolyLocalAudio : MonoBehaviour
     }
 
 
-    // Helper methods for checking if Mixers, MixerGroups, Sounds, or SourceSounds exist
+	// Helper methods for checking if a Mixer and MixerGroup exists
     public bool DoesMixerExist(string mixerName)
     {
-        if (MixerDict.ContainsKey(mixerName))
-        {
-            return true;
-        }
-        else
-        {
-            if (EnableDebug)
-            {
-                Debug.LogWarning("HolyLocalAudio|DoesMixerExist: Mixer " + mixerName + " was NOT found!");
-            }
-            return false;
-        }
+		return HolyAudioManager.HolyAudioManagerInstance.DoesMixerExist(mixerName);
     }
 
     public bool DoesMixerGroupExist(string mixerGroupName)
     {
-        if (MixerGroupDict.ContainsKey(mixerGroupName))
-        {
-            return true;
-        }
-        else
-        {
-            if (EnableDebug)
-            {
-                Debug.LogWarning("HolyLocalAudio|DoesMixerGroupExist: MixerGroup " + mixerGroupName + " was NOT found!");
-            }
-            return false;
-        }
+		return HolyAudioManager.HolyAudioManagerInstance.DoesMixerGroupExist(mixerGroupName);
     }
 
+
+	// Helper methods for checking if a Sound or SourceSound exists
     public bool DoesSoundExist(string soundName)
     {
         if (SoundDict.ContainsKey(soundName))

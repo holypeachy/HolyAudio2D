@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Audio;
 
 /*
-	! Version: 0.1.1
+	! Version: 0.1.0
 	* 🍑HolyAudio2D
 	* Thank you for using this little project of mine, I hope it is helpful in your endeavors! -holypeach
 	? If you have any questions, suggestions, or find bugs here is the repo https://github.com/holypeachy/HolyAudio2D
@@ -14,10 +14,10 @@ using UnityEngine.Audio;
 public class HolyAudioManager : MonoBehaviour
 {
 	// Instance Variable.
-	private static HolyAudioManager HolyAudioManagerInstance;
+	[HideInInspector] public static HolyAudioManager HolyAudioManagerInstance {get; private set;}
 
 
-	// Control Flow. Some options for debugging.
+	// Control Flow and some options for debugging.
 	[Header("Debugging")]
 	
 	[Tooltip("Only enable if they are so, for saving to work properly.")]
@@ -29,11 +29,12 @@ public class HolyAudioManager : MonoBehaviour
 	[Tooltip("Applies to optional messages. Important Warnings and Errors will still be displayed but I recommend you keep it on during development or you might miss some things. Make sure to turn it off when you build the project.")]
 	[SerializeField] private bool EnableDebug = true;
 
-	// Sounds and Mixers
+
+	// Mixers and Sounds.
 	[Header("Mixers and Mixer Groups")]
 	
 	[Tooltip("Add all of your Mixers here. It also allows you to choose UpdateMode for each.")]
-	[SerializeField] private HolyMixerInfo[] MixersInfo;
+	[SerializeField] private HolyMixerInfo[] Mixers;
 	private Dictionary<string, AudioMixer> MixerDict;
 	
 	[Tooltip("Add all of your MixerGroups here. Make sure to include all of the ones being used for sounds.")]
@@ -41,6 +42,7 @@ public class HolyAudioManager : MonoBehaviour
 	private Dictionary<string, AudioMixerGroup> MixerGroupDict;
 
 	[Header("Audio Clips")]
+
 	[Tooltip("Make your own sounds here. If you need to use custom spatial audio curves use SourceSounds.")]
 	[SerializeField] private HolySound[] Sounds;
 	private Dictionary<string, HolySound> SoundDict;
@@ -56,15 +58,15 @@ public class HolyAudioManager : MonoBehaviour
 	[SerializeField] public string GameAudioVersion;
 
 
-	// Play Control. These keep track of states in all methods for Play, Pause, and Stop.
+	// Reproduction Control. These keep track of states in all methods for Play, Pause, and Stop.
 	private bool DidExecuteSound = false;
 	private bool DidExecuteSourceSound = false;
 	private bool SoundNotFound = false;
 	private bool SourceSoundNotFound = false;
 
 
-	// Memory
-	private HolySound soundTemp;
+    // Memory. Variables that hold temporary information throughout this class.
+    private HolySound soundTemp;
 	private HolySourceSound sourceSoundTemp;
 	private AudioMixer mixerTemp;
 	private AudioMixerGroup mixerGroupTemp;
@@ -76,17 +78,17 @@ public class HolyAudioManager : MonoBehaviour
 	// All the important setup happens here.
 	private void Awake()
 	{
-		// Keeps only one instance of HolyAudioManager in game.
-		if (HolyAudioManagerInstance == null)
-		{
-			HolyAudioManagerInstance = this;
-		}
-		else
-		{
-			Destroy(gameObject);
-			return;
-		}
-		DontDestroyOnLoad(gameObject);
+        // Keeps only one instance of HolyAudioManager in the scene
+        if (HolyAudioManagerInstance == null)
+        {
+            HolyAudioManagerInstance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+            return;
+        }
+        DontDestroyOnLoad(gameObject);
 		
 		// Initializes Dictionaries
 		MixerDict = new Dictionary<string, AudioMixer>();
@@ -94,7 +96,8 @@ public class HolyAudioManager : MonoBehaviour
 		SoundDict = new Dictionary<string, HolySound>();
 		SourceSoundDict = new Dictionary<string, HolySourceSound>();
 		
-		foreach (HolyMixerInfo mixer in MixersInfo)
+		// Adds the Mixers to the Mixer Dictionary
+		foreach (HolyMixerInfo mixer in Mixers)
 		{
 			if(MixerDict.ContainsKey(mixer.Mixer.name) && EnableDebug)
 			{
@@ -104,8 +107,9 @@ public class HolyAudioManager : MonoBehaviour
 			MixerDict.Add(mixer.Mixer.name, mixer.Mixer);
 			mixer.Mixer.updateMode = mixer.UpdateMode;
 		}
-		
-		foreach (AudioMixerGroup group in MixerGroups)
+
+        // Adds the Mixer Groups to the MixerGroup Dictionary
+        foreach (AudioMixerGroup group in MixerGroups)
 		{
 			if (MixerGroupDict.ContainsKey(group.name) && EnableDebug)
 			{
@@ -114,8 +118,9 @@ public class HolyAudioManager : MonoBehaviour
 			}
 			MixerGroupDict.Add(group.name, group);
 		}
-		
-		foreach (HolySound sound in Sounds)
+
+        // Adds the Sounds to the Sounds Dictionary
+        foreach (HolySound sound in Sounds)
 		{
 			if (SoundDict.ContainsKey(sound.ClipName) && EnableDebug)
 			{
@@ -125,7 +130,8 @@ public class HolyAudioManager : MonoBehaviour
 			SoundDict.Add(sound.ClipName, sound);
 		}
 
-		foreach (HolySourceSound sourceSound in SourceSounds)
+        // Adds the Source Sounds to the SourceSounds Dictionary
+        foreach (HolySourceSound sourceSound in SourceSounds)
 		{
 			if (SourceSoundDict.ContainsKey(sourceSound.ClipName) && EnableDebug)
 			{
@@ -135,6 +141,7 @@ public class HolyAudioManager : MonoBehaviour
 			SourceSoundDict.Add(sourceSound.ClipName, sourceSound);
 		}
 		
+		// Adds an AudioSource component to the object for each Sound
 		foreach (KeyValuePair<string, HolySound> keyValuePair in SoundDict)
 		{
 			soundTemp = keyValuePair.Value;
@@ -229,7 +236,6 @@ public class HolyAudioManager : MonoBehaviour
 			Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|Play: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -276,7 +282,6 @@ public class HolyAudioManager : MonoBehaviour
 			Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|PlayOnce: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -325,7 +330,6 @@ public class HolyAudioManager : MonoBehaviour
 			Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|Pause: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -465,7 +469,6 @@ public class HolyAudioManager : MonoBehaviour
 			Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|Unpause: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -605,7 +608,6 @@ public class HolyAudioManager : MonoBehaviour
 			Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|Stop: A clip has been found in both Sounds and SourceSounds");
 		}
 
-		// We reset all the variables
 		DidExecuteSound = false;
 		DidExecuteSourceSound = false;
 		SoundNotFound = false;
@@ -1188,7 +1190,7 @@ public class HolyAudioManager : MonoBehaviour
 	}
 	
 	
-	// Helper methods for checking if Mixers, MixerGroups, Sounds, or SourceSounds exist
+	// Helper methods for checking if a Mixer and MixerGroup exists
 	public bool DoesMixerExist(string mixerName)
 	{
 		if (MixerDict.ContainsKey(mixerName))
@@ -1220,8 +1222,10 @@ public class HolyAudioManager : MonoBehaviour
 			return false;
 		}
 	}
-	
-	public bool DoesSoundExist(string soundName)
+
+    
+	// Helper methods for checking if a Sound or SourceSound exists
+    public bool DoesSoundExist(string soundName)
 	{
 		if (SoundDict.ContainsKey(soundName))
 		{
