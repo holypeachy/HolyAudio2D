@@ -8,14 +8,17 @@ Latest Version: 0.1.0 (To Be Released)
 
 ---
 ### Recent Work: 
-- Tested HolyAudio2D on a real project, found out about a few things I need to add and fix.
-- Updated HolyLocalAudio and how it references the GlobalScript.
+- Added a method that allows a sound to be played even if the object is destroyed.
+- 
 ### To Do: 
 - Edit documentation.
 - Do more testing in a real project.
 - Add "sound occlusion" and reverb.
-- Add function to change looping of sounds.
-- Add a way to play a sound even after the object that is holding the local manager is destroyed.
-- Add method to get length of clip.
 - Prep a package for release.
 - Organize Awake and/or Start code. 
+- Add the capacity to loop sounds a certain amount of times.
+- Make it so the PlayInPlace method can play both Sounds and SourceSounds, even by mistake.
+
+### For Sean (The Intern):
+- Add function to change looping of sounds.
+- Add method to get length of clip.
