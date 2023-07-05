@@ -42,8 +42,9 @@ public class HolyLocalAudio : MonoBehaviour
 	private AudioMixer mixerTemp;
 	private AudioMixerGroup mixerGroupTemp;
 
-	private int counter;
-	private float volume;
+	private GameObject objectTemp;
+	private Transform transformTemp;
+	private HolyLocalTemp localAudioTemp;
 
 
     // All the important setup happens here.
@@ -223,7 +224,56 @@ public class HolyLocalAudio : MonoBehaviour
 		SoundNotFound = false;
 		SourceSoundNotFound = false;
 	}
-	
+
+    public void PlayInPlace(string clipName, int iterations)
+    {
+		transformTemp = transform;
+		objectTemp = new GameObject();
+		objectTemp.transform.SetPositionAndRotation(transform.position, transform.rotation);
+
+		localAudioTemp = objectTemp.AddComponent<HolyLocalTemp>();
+
+		if(SoundDict.TryGetValue(clipName, out soundTemp))
+		{
+			localAudioTemp.Init(soundTemp, iterations);
+			DidExecuteSound = true;
+            if (EnableDebug)
+            {
+                Debug.Log("HolyLocalAudio|Sound|Play: " + clipName + " has played " + iterations + " times!");
+            }
+		}
+		else
+		{
+			SoundNotFound = true;
+		}
+
+		if(SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
+		{
+			if(SoundNotFound)
+			{
+                localAudioTemp.Init(sourceSoundTemp, iterations);
+                if (EnableDebug)
+                {
+                    Debug.Log("HolyLocalAudio|Sound|PlayInPlace: " + clipName + " has played " + iterations + " times!");
+                }
+			}
+			DidExecuteSourceSound = true;
+		}
+		else
+		{
+			SourceSoundNotFound = true;
+		}
+
+        if (SoundNotFound && SourceSoundNotFound)
+        {
+            Debug.LogError("HolyLocalAudio|Sounds&SourceSounds|PlayInPlace: " + clipName + " does NOT exist!");
+        }
+		else if(DidExecuteSound && DidExecuteSourceSound)
+		{
+            Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|PlayInPlace: A clip has been found in both Sounds and SourceSounds. Only the Sound will play!");
+		}
+    }
+
 
     // Pause
 	public void Pause(string clipName)
@@ -504,7 +554,6 @@ public class HolyLocalAudio : MonoBehaviour
 	
 
     // Stop
-
 	public void Stop(string clipName)
 	{
 		if (SoundDict.TryGetValue(clipName, out soundTemp))

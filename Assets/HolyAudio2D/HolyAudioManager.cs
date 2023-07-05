@@ -287,7 +287,7 @@ public class HolyAudioManager : MonoBehaviour
 		SoundNotFound = false;
 		SourceSoundNotFound = false;
 	}
-	
+
 	
 	// Pause
 	public void Pause(string clipName)

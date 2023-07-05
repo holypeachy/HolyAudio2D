@@ -49,4 +49,33 @@ public class HolySound
 	
 	public float MinDistance = 0f;
 	public float MaxDistance = 500f;
+
+
+	public HolySound(HolySound sound)
+	{
+		ClipName = sound.ClipName;
+		Source = sound.Source;
+		MixerGroup = sound.MixerGroup;
+		AudioFile = sound.AudioFile;
+
+		BypassEffects = sound.BypassEffects;
+		BypassListenerEffects = sound.BypassListenerEffects;
+		BypassReverbZones = sound.BypassReverbZones;
+
+		PlayOnAwake = sound.PlayOnAwake;
+		Loop = sound.Loop;
+
+		Priority = sound.Priority;
+		Volume = sound.Volume;
+		Pitch = sound.Pitch;
+		StereoPan = sound.StereoPan;
+		SpatialBlend = sound.SpatialBlend;
+		ReverbZoneMix = sound.ReverbZoneMix;
+		DopplerLevel = sound.DopplerLevel;
+		Spread = sound.Spread;
+
+		VolumeRolloff = sound.VolumeRolloff;
+		MinDistance = sound.MinDistance;
+		MaxDistance = sound.MaxDistance;
+	}
 }

@@ -411,9 +411,9 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 799435721, guid: ad9c6ae2b0a9e674c8be342dad64b7ff, type: 3}
-      propertyPath: GlobalHolyAudio
-      value: 
-      objectReference: {fileID: 1478122664}
+      propertyPath: SourceSounds.Array.data[0].ClipName
+      value: MJ2
+      objectReference: {fileID: 0}
     - target: {fileID: 4777789174749556845, guid: ad9c6ae2b0a9e674c8be342dad64b7ff, type: 3}
       propertyPath: m_RootOrder
       value: 2
@@ -693,9 +693,7 @@ MonoBehaviour:
   AreMixersSetupProperly: 1
   DisableSpatialBlend: 0
   EnableDebug: 1
-  MixersInfo:
-  - Mixer: {fileID: 24100000, guid: 09725ab7074767b428053a46efe093ea, type: 2}
-    UpdateMode: 0
+  Mixers: []
   MixerGroups:
   - {fileID: 3228718149435927020, guid: 09725ab7074767b428053a46efe093ea, type: 2}
   Sounds:
