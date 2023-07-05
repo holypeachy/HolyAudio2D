@@ -10,10 +10,11 @@ Latest Version: 0.1.0 (To Be Released)
 ### Recent Work: 
 - Changed the way sounds are handled (now using dictionaries).
   - Updated HolyAudioManager and all it's methods to use dictionaries.
+- Tested HolyAudio2D on a real project, found out about a few things I need to fix and add.
 ### To Do: 
 - Edit documentation.
-- Do testing in a real project.
+- Do more testing in a real project.
 - Prep a package for release.
 - Add "sound occlusion" and reverb.
 - Add function to change looping of sounds.
-- Need to update HolyLocalAudio.
+- Need to update HolyLocalAudio and how it references the GlobalScript.
