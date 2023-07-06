@@ -747,7 +747,13 @@ public class HolyLocalAudio : MonoBehaviour
     // Get MixerGroup(s)
     public AudioMixer GetMixer(string mixerName)
     {
-		return HolyAudioManager.HolyAudioManagerInstance.GetMixer(mixerName);
+        mixerTemp = HolyAudioManager.HolyAudioManagerInstance.GetMixer(mixerName);
+        if (mixerTemp == null)
+        {
+            Debug.LogError("HolyLocalAudio|GetMixer: " + mixerName + " does NOT exist!");
+            return null;
+        }
+		return mixerTemp;
     }
 
     public Dictionary<string, AudioMixer> GetAllMixers()
@@ -757,7 +763,12 @@ public class HolyLocalAudio : MonoBehaviour
 
     public AudioMixerGroup GetMixerGroup(string mixerGroupName)
     {
-		return HolyAudioManager.HolyAudioManagerInstance.GetMixerGroup(mixerGroupName);
+		mixerGroupTemp = HolyAudioManager.HolyAudioManagerInstance.GetMixerGroup(mixerGroupName);
+		if (mixerGroupTemp == null){
+            Debug.LogError("HolyLocalAudio|GetMixerGroup: " + mixerGroupName + " does NOT exist!");
+			return null;
+		}
+		return mixerGroupTemp;
     }
 
     public Dictionary<string, AudioMixerGroup> GetAllMixerGroups()
