@@ -7,12 +7,15 @@ public class HolySound
 	// Basic Info
 	public string ClipName;
 	[HideInInspector] public AudioSource Source;
-	public AudioMixerGroup MixerGroup;
 	public AudioClip AudioFile;
+	public AudioMixerGroup MixerGroup;
 	
 
 	// Options
+	public bool Mute = false;
 	public bool BypassEffects = false;
+
+	[Tooltip("Warning: Can only be enabled if the Mixer for this sound is set to None")]
 	public bool BypassListenerEffects = false;
 	public bool BypassReverbZones = false;
 
@@ -58,6 +61,7 @@ public class HolySound
 		MixerGroup = sound.MixerGroup;
 		AudioFile = sound.AudioFile;
 
+		Mute = sound.Mute;
 		BypassEffects = sound.BypassEffects;
 		BypassListenerEffects = sound.BypassListenerEffects;
 		BypassReverbZones = sound.BypassReverbZones;

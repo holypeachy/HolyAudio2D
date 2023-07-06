@@ -153,8 +153,9 @@ MonoBehaviour:
   Sounds:
   - ClipName: MJ
     Source: {fileID: 0}
-    MixerGroup: {fileID: 24300002, guid: 09725ab7074767b428053a46efe093ea, type: 2}
     AudioFile: {fileID: 8300000, guid: 619c1e89ec5ed814883ea4da5198886e, type: 3}
+    MixerGroup: {fileID: 3228718149435927020, guid: 09725ab7074767b428053a46efe093ea, type: 2}
+    Mute: 0
     BypassEffects: 0
     BypassListenerEffects: 0
     BypassReverbZones: 0
@@ -172,7 +173,7 @@ MonoBehaviour:
     MinDistance: 1.75
     MaxDistance: 6
   SourceSounds:
-  - ClipName: MJ2
+  - ClipName: MJ
     Source: {fileID: 996585090}
 --- !u!82 &996585090
 AudioSource:
@@ -183,7 +184,7 @@ AudioSource:
   m_GameObject: {fileID: 4777789174749556849}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 3228718149435927020, guid: 09725ab7074767b428053a46efe093ea, type: 2}
+  OutputAudioMixerGroup: {fileID: 24300002, guid: 09725ab7074767b428053a46efe093ea, type: 2}
   m_audioClip: {fileID: 8300000, guid: 619c1e89ec5ed814883ea4da5198886e, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
@@ -194,8 +195,8 @@ AudioSource:
   SpatializePostEffects: 0
   Priority: 128
   DopplerLevel: 0
-  MinDistance: 0
-  MaxDistance: 15
+  MinDistance: 1.75
+  MaxDistance: 6
   Pan2D: 0
   rolloffMode: 1
   BypassEffects: 0
@@ -260,7 +261,7 @@ AudioSource:
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1
+      value: 0
       inSlope: 0
       outSlope: 0
       tangentMode: 0

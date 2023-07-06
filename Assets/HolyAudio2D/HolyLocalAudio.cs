@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -85,6 +86,7 @@ public class HolyLocalAudio : MonoBehaviour
             soundTemp.Source.outputAudioMixerGroup = soundTemp.MixerGroup;
             soundTemp.Source.clip = soundTemp.AudioFile;
 
+			soundTemp.Source.mute = soundTemp.Mute;
             soundTemp.Source.bypassEffects = soundTemp.BypassEffects;
             soundTemp.Source.bypassListenerEffects = soundTemp.BypassListenerEffects;
             soundTemp.Source.bypassReverbZones = soundTemp.BypassReverbZones;
@@ -178,7 +180,53 @@ public class HolyLocalAudio : MonoBehaviour
 		SoundNotFound = false;
 		SourceSoundNotFound = false;
 	}
-	
+
+    public void PlayRepeat(string clipName, int iterations)
+    {
+        if (SoundDict.TryGetValue(clipName, out soundTemp))
+        {
+            StartCoroutine(ReapeatPlayer(soundTemp.Source, iterations));
+            DidExecuteSound = true;
+            if (EnableDebug)
+            {
+                Debug.Log("HolyAudioManager|Sound|PlayRepeat: " + clipName + " has played " + iterations + " times!");
+            }
+        }
+        else
+        {
+            SoundNotFound = true;
+        }
+
+        if (SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
+        {
+            StartCoroutine(ReapeatPlayer(sourceSoundTemp.Source, iterations));
+            DidExecuteSourceSound = true;
+            if (EnableDebug)
+            {
+                Debug.Log("HolyAudioManager|SourceSound|PlayRepeat: " + clipName + " has played " + iterations + " times!");
+            }
+        }
+        else
+        {
+            SourceSoundNotFound = true;
+        }
+
+        // Debug
+        if (SoundNotFound && SourceSoundNotFound)
+        {
+            Debug.LogError("HolyAudioManager|Sounds&SourceSounds|PlayRepeat: " + clipName + " does NOT exist!");
+        }
+        else if (DidExecuteSound && DidExecuteSourceSound)
+        {
+            Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|PlayRepeat: A clip has been found in both Sounds and SourceSounds");
+        }
+
+        DidExecuteSound = false;
+        DidExecuteSourceSound = false;
+        SoundNotFound = false;
+        SourceSoundNotFound = false;
+    }
+
 	public void PlayOnce(string clipName)
 	{
 		if (SoundDict.TryGetValue(clipName, out soundTemp))
@@ -227,19 +275,20 @@ public class HolyLocalAudio : MonoBehaviour
 
     public void PlayInPlace(string clipName, int iterations)
     {
-		transformTemp = transform;
-		objectTemp = new GameObject();
-		objectTemp.transform.SetPositionAndRotation(transform.position, transform.rotation);
-
-		localAudioTemp = objectTemp.AddComponent<HolyLocalTemp>();
-
-		if(SoundDict.TryGetValue(clipName, out soundTemp))
+		if (SoundDict.TryGetValue(clipName, out soundTemp))
 		{
+            transformTemp = transform;
+            objectTemp = new GameObject();
+            objectTemp.transform.SetPositionAndRotation(transform.position, transform.rotation);
+
+            localAudioTemp = objectTemp.AddComponent<HolyLocalTemp>();
+
 			localAudioTemp.Init(soundTemp, iterations);
 			DidExecuteSound = true;
+
             if (EnableDebug)
             {
-                Debug.Log("HolyLocalAudio|Sound|Play: " + clipName + " has played " + iterations + " times!");
+                Debug.Log("HolyLocalAudio|Sound|PlayInPlace: " + clipName + " has played " + iterations + " times!");
             }
 		}
 		else
@@ -247,17 +296,20 @@ public class HolyLocalAudio : MonoBehaviour
 			SoundNotFound = true;
 		}
 
-		if(SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
+		if (SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
 		{
-			if(SoundNotFound)
-			{
-                localAudioTemp.Init(sourceSoundTemp, iterations);
-                if (EnableDebug)
-                {
-                    Debug.Log("HolyLocalAudio|Sound|PlayInPlace: " + clipName + " has played " + iterations + " times!");
-                }
-			}
+			objectTemp = new GameObject();
+			objectTemp.transform.SetPositionAndRotation(transform.position, transform.rotation);
+
+			localAudioTemp = objectTemp.AddComponent<HolyLocalTemp>();
+
+			localAudioTemp.Init(sourceSoundTemp, iterations);
 			DidExecuteSourceSound = true;
+
+			if (EnableDebug)
+			{
+				Debug.Log("HolyLocalAudio|Sound|PlayInPlace: " + clipName + " has played " + iterations + " times!");
+			}
 		}
 		else
 		{
@@ -270,7 +322,7 @@ public class HolyLocalAudio : MonoBehaviour
         }
 		else if(DidExecuteSound && DidExecuteSourceSound)
 		{
-            Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|PlayInPlace: A clip has been found in both Sounds and SourceSounds. Only the Sound will play!");
+            Debug.LogWarning("HolyLocalAudio|Sounds&SourceSounds|PlayInPlace: A clip has been found in both Sounds and SourceSounds.");
 		}
     }
 
@@ -771,4 +823,14 @@ public class HolyLocalAudio : MonoBehaviour
         }
     }
 
+
+	// Timer
+    public IEnumerator ReapeatPlayer(AudioSource source, int iterations)
+    {
+        for (int i = 0; i < iterations; i++)
+        {
+            source.Play();
+            yield return new WaitForSeconds(source.clip.length);
+        }
+    }
 }

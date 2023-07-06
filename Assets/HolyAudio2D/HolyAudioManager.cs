@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -73,7 +74,7 @@ public class HolyAudioManager : MonoBehaviour
 
 	private int counter;
 	private float volume;
-	
+
 
 	// All the important setup happens here.
 	private void Awake()
@@ -150,6 +151,7 @@ public class HolyAudioManager : MonoBehaviour
 			soundTemp.Source.outputAudioMixerGroup = soundTemp.MixerGroup;
 			soundTemp.Source.clip = soundTemp.AudioFile;
 			
+			soundTemp.Source.mute = soundTemp.Mute;
 			soundTemp.Source.bypassEffects = soundTemp.BypassEffects;
 			soundTemp.Source.bypassListenerEffects = soundTemp.BypassListenerEffects;
 			soundTemp.Source.bypassReverbZones = soundTemp.BypassReverbZones;
@@ -241,6 +243,52 @@ public class HolyAudioManager : MonoBehaviour
 		SoundNotFound = false;
 		SourceSoundNotFound = false;
 	}
+
+    public void PlayRepeat(string clipName, int iterations)
+    {
+        if (SoundDict.TryGetValue(clipName, out soundTemp))
+        {
+            StartCoroutine(ReapeatPlayer(soundTemp.Source, iterations));
+            DidExecuteSound = true;
+            if (EnableDebug)
+            {
+                Debug.Log("HolyAudioManager|Sound|PlayRepeat: " + clipName + " has played " + iterations + " times!");
+            }
+        }
+        else
+        {
+            SoundNotFound = true;
+        }
+
+        if (SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
+        {
+            StartCoroutine(ReapeatPlayer(sourceSoundTemp.Source, iterations));
+            DidExecuteSourceSound = true;
+            if (EnableDebug)
+            {
+                Debug.Log("HolyAudioManager|SourceSound|PlayRepeat: " + clipName + " has played " + iterations + " times!");
+            }
+        }
+        else
+        {
+            SourceSoundNotFound = true;
+        }
+
+        // Debug
+        if (SoundNotFound && SourceSoundNotFound)
+        {
+            Debug.LogError("HolyAudioManager|Sounds&SourceSounds|PlayRepeat: " + clipName + " does NOT exist!");
+        }
+        else if (DidExecuteSound && DidExecuteSourceSound)
+        {
+            Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|PlayRepeat: A clip has been found in both Sounds and SourceSounds");
+        }
+
+        DidExecuteSound = false;
+        DidExecuteSourceSound = false;
+        SoundNotFound = false;
+        SourceSoundNotFound = false;
+    }
 
 	public void PlayOnce(string clipName)
 	{
@@ -340,7 +388,7 @@ public class HolyAudioManager : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerGroupExist(mixerGroupName))
+			if (!MixerGroupDict.ContainsKey(mixerGroupName))
 			{
 				Debug.LogError("HolyAudioManager|PauseAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
@@ -381,7 +429,7 @@ public class HolyAudioManager : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerGroupExist(mixerGroupName))
+			if (!MixerGroupDict.ContainsKey(mixerGroupName))
 			{
 				Debug.LogError("HolyAudioManager|PauseAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
@@ -479,7 +527,7 @@ public class HolyAudioManager : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerGroupExist(mixerGroupName))
+			if (!MixerGroupDict.ContainsKey(mixerGroupName))
 			{
 				Debug.LogError("HolyAudioManager|UnpauseAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
@@ -520,7 +568,7 @@ public class HolyAudioManager : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerGroupExist(mixerGroupName))
+			if (!MixerGroupDict.ContainsKey(mixerGroupName))
 			{
 				Debug.LogError("HolyAudioManager|UnpauseAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
@@ -618,7 +666,7 @@ public class HolyAudioManager : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerGroupExist(mixerGroupName))
+			if (!MixerGroupDict.ContainsKey(mixerGroupName))
 			{
 				Debug.LogError("HolyAudioManager|StopAllButMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
@@ -659,7 +707,7 @@ public class HolyAudioManager : MonoBehaviour
 	{
 		if (EnableDebug)
 		{
-			if (!DoesMixerGroupExist(mixerGroupName))
+			if (!MixerGroupDict.ContainsKey(mixerGroupName))
 			{
 				Debug.LogError("HolyAudioManager|StopAllFromMixerGroup: " + mixerGroupName + " does NOT exist!");
 				return;
@@ -1256,5 +1304,16 @@ public class HolyAudioManager : MonoBehaviour
 			return false;
 		}
 	}
+
+
+	// Timer
+    public IEnumerator ReapeatPlayer(AudioSource source, int iterations)
+    {
+        for (int i = 0; i < iterations; i++)
+        {
+            source.Play();
+            yield return new WaitForSeconds(source.clip.length);
+        }
+    }
 
 }

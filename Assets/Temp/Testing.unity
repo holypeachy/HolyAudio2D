@@ -411,8 +411,12 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 799435721, guid: ad9c6ae2b0a9e674c8be342dad64b7ff, type: 3}
-      propertyPath: SourceSounds.Array.data[0].ClipName
-      value: MJ2
+      propertyPath: Sounds.Array.data[0].Mute
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 996585090, guid: ad9c6ae2b0a9e674c8be342dad64b7ff, type: 3}
+      propertyPath: Mute
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 4777789174749556845, guid: ad9c6ae2b0a9e674c8be342dad64b7ff, type: 3}
       propertyPath: m_RootOrder
@@ -699,8 +703,9 @@ MonoBehaviour:
   Sounds:
   - ClipName: Theme
     Source: {fileID: 0}
-    MixerGroup: {fileID: 3228718149435927020, guid: 09725ab7074767b428053a46efe093ea, type: 2}
     AudioFile: {fileID: 8300000, guid: aa034b09bd275cc4c96d2e352be3fb0f, type: 3}
+    MixerGroup: {fileID: 3228718149435927020, guid: 09725ab7074767b428053a46efe093ea, type: 2}
+    Mute: 0
     BypassEffects: 0
     BypassListenerEffects: 0
     BypassReverbZones: 0

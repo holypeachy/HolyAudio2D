@@ -4,7 +4,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 
 public static class HolyAudioSaver
 {
-	private static string filePath = "/HolyAudioSettings.bin";
+	private static string filePath = "/AudioSettings.holy";
 	
 	public static void SaveData(HolyAudioData Data)
 	{
