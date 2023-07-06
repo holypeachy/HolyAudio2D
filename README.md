@@ -8,20 +8,20 @@ Latest Version: 0.1.0 (To Be Released)
 
 ---
 ### Recent Work: 
-- Added a method that allows a sound to be played even if the object is destroyed.
+- Made it so the PlayInPlace method can play both Sounds and SourceSounds, even by mistake.
+- Fixed: SourceSounds would not play with the PlayInPlace() Method.
+- Added the capacity to loop sounds a certain amount of times.
+- Cleaned up some methods.
 
 ### To Do: 
 - Edit documentation.
 - Do more testing in a real project.
 - Prep a package for release.
-- Organize Awake and/or Start code. 
-- Add the capacity to loop sounds a certain amount of times.
-- Make it so the PlayInPlace method can play both Sounds and SourceSounds, even by mistake.
 
 ### For Sean:
 - Add function to change looping of sounds.
 - Add method to get length of clip.
-- Add get clip by name method.
+- Add "get clip by name" method.
 
 ### Future Ideas:
 - Add the ability to modify start and end times for the clip.
