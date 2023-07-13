@@ -60,7 +60,7 @@ public class HolyLocalAudio : MonoBehaviour
         {
             if (SoundDict.ContainsKey(sound.ClipName) && EnableDebug)
             {
-                Debug.Log("HolyLocalAudio|Awake|Storing Sounds: Sound " + sound.ClipName + " already exists in SoundsDict, there is a duplicate name!");
+                Debug.LogWarning("HolyLocalAudio|Awake|Storing Sounds: Sound " + sound.ClipName + " already exists in SoundsDict, there is a duplicate name!");
                 continue;
             }
             SoundDict.Add(sound.ClipName, sound);
@@ -71,7 +71,7 @@ public class HolyLocalAudio : MonoBehaviour
         {
             if (SourceSoundDict.ContainsKey(sourceSound.ClipName) && EnableDebug)
             {
-                Debug.Log("HolyLocalAudio|Awake|Storing SourceSounds: SourceSound " + sourceSound.ClipName + " already exists in SourceSoundsDict, there is a duplicate name!");
+                Debug.LogWarning("HolyLocalAudio|Awake|Storing SourceSounds: SourceSound " + sourceSound.ClipName + " already exists in SourceSoundsDict, there is a duplicate name!");
                 continue;
             }
             SourceSoundDict.Add(sourceSound.ClipName, sourceSound);
@@ -836,7 +836,7 @@ public class HolyLocalAudio : MonoBehaviour
 
 
 	// Timer
-    public IEnumerator ReapeatPlayer(AudioSource source, int iterations)
+    private IEnumerator ReapeatPlayer(AudioSource source, int iterations)
     {
         for (int i = 0; i < iterations; i++)
         {

@@ -102,7 +102,7 @@ public class HolyAudioManager : MonoBehaviour
 		{
 			if(MixerDict.ContainsKey(mixer.Mixer.name) && EnableDebug)
 			{
-				Debug.Log("HolyAudioManager|Awake|Storing Mixers: Mixer " + mixer.Mixer.name +  " already exists in MixersDict, there is a duplicate name!");
+				Debug.LogWarning("HolyAudioManager|Awake|Storing Mixers: Mixer " + mixer.Mixer.name +  " already exists in MixersDict, there is a duplicate name!");
 				continue;
 			}
 			MixerDict.Add(mixer.Mixer.name, mixer.Mixer);
@@ -114,7 +114,7 @@ public class HolyAudioManager : MonoBehaviour
 		{
 			if (MixerGroupDict.ContainsKey(group.name) && EnableDebug)
 			{
-				Debug.Log("HolyAudioManager|Awake|Storing MixerGroups: MixerGroup " + group.name + " already exists in MixerGroupsDict, there is a duplicate name!");
+				Debug.LogWarning("HolyAudioManager|Awake|Storing MixerGroups: MixerGroup " + group.name + " already exists in MixerGroupsDict, there is a duplicate name!");
 				continue;
 			}
 			MixerGroupDict.Add(group.name, group);
@@ -125,7 +125,7 @@ public class HolyAudioManager : MonoBehaviour
 		{
 			if (SoundDict.ContainsKey(sound.ClipName) && EnableDebug)
 			{
-				Debug.Log("HolyAudioManager|Awake|Storing Sounds: Sound " + sound.ClipName + " already exists in SoundsDict, there is a duplicate name!");
+				Debug.LogWarning("HolyAudioManager|Awake|Storing Sounds: Sound " + sound.ClipName + " already exists in SoundsDict, there is a duplicate name!");
 				continue;
 			}
 			SoundDict.Add(sound.ClipName, sound);
@@ -136,7 +136,7 @@ public class HolyAudioManager : MonoBehaviour
 		{
 			if (SourceSoundDict.ContainsKey(sourceSound.ClipName) && EnableDebug)
 			{
-				Debug.Log("HolyAudioManager|Awake|Storing SourceSounds: SourceSound " + sourceSound.ClipName + " already exists in SourceSoundsDict, there is a duplicate name!");
+				Debug.LogWarning("HolyAudioManager|Awake|Storing SourceSounds: SourceSound " + sourceSound.ClipName + " already exists in SourceSoundsDict, there is a duplicate name!");
 				continue;
 			}
 			SourceSoundDict.Add(sourceSound.ClipName, sourceSound);
@@ -1307,7 +1307,7 @@ public class HolyAudioManager : MonoBehaviour
 
 
 	// Timer
-    public IEnumerator ReapeatPlayer(AudioSource source, int iterations)
+    private IEnumerator ReapeatPlayer(AudioSource source, int iterations)
     {
         for (int i = 0; i < iterations; i++)
         {
@@ -1317,3 +1317,12 @@ public class HolyAudioManager : MonoBehaviour
     }
 
 }
+
+/*
+	* Commit:
+	-  
+	
+	TODO:
+	- Add check to see if any Sounds and SourceSounds have the same name.
+	- Look into saving PC Audio Source.
+*/
