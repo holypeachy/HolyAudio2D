@@ -1320,7 +1320,6 @@ public class HolyAudioManager : MonoBehaviour
 
 /*
 	* Commit:
-	- Added .vscode to the gitignore.
 	- 
 	
 	TODO:
