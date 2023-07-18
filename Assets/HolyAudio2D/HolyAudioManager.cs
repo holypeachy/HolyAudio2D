@@ -1320,7 +1320,8 @@ public class HolyAudioManager : MonoBehaviour
 
 /*
 	* Commit:
-	-  
+	- Added .vscode to the gitignore.
+	- 
 	
 	TODO:
 	- Add check to see if any Sounds and SourceSounds have the same name.

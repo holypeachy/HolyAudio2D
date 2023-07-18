@@ -744,6 +744,18 @@ public class HolyLocalAudio : MonoBehaviour
 	}
 
 
+	// ! For Sean
+	public void SetLooping(string clipName, bool value)
+	{
+
+	}
+
+	public float? GetClipLength(string clipName)
+	{
+        return null;
+    }
+
+
     // Get MixerGroup(s)
     public AudioMixer GetMixer(string mixerName)
     {
