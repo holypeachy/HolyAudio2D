@@ -4,6 +4,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
+/*
+	! Version: 0.1.0
+	* 🍑HolyAudio2D
+	* Thank you for using this little project of mine, I hope it is helpful in your endeavors! -holypeach
+	? If you have any questions, suggestions, or find bugs here is the repo https://github.com/holypeachy/HolyAudio2D
+*/
 
 public class HolyLocalAudio : MonoBehaviour
 {
@@ -130,7 +136,6 @@ public class HolyLocalAudio : MonoBehaviour
 	private void Start()
 	{
         GlobalHolyAudioManager = HolyAudioManager.HolyAudioManagerInstance;
-		
 	}
 
 
@@ -744,16 +749,79 @@ public class HolyLocalAudio : MonoBehaviour
 	}
 
 
-	// ! For Sean
-	public void SetLooping(string clipName, bool value)
-	{
+    // Clip Options Related Operations
+    public void SetLooping(string clipName, bool value)
+    {
+        if (SoundDict.TryGetValue(clipName, out soundTemp))
+        {
+            soundTemp.Source.loop = value;
+            DidExecuteSound = true;
+            if (EnableDebug)
+            {
+                Debug.Log("HolyAudioManager|Sound|SetLooping: " + clipName + (value ? " will now loop when played!" : " will now NOT loop when played"));
+            }
+        }
+        else
+        {
+            SoundNotFound = true;
+        }
 
-	}
+        if (SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
+        {
+            sourceSoundTemp.Source.loop = value;
+            DidExecuteSourceSound = true;
+            if (EnableDebug)
+            {
+                Debug.Log("HolyAudioManager|SourceSound|SetLooping: " + clipName + (value ? " will now loop when played!" : " will now NOT loop when played"));
+            }
+        }
+        else
+        {
+            SourceSoundNotFound = true;
+        }
 
-	public float? GetClipLength(string clipName)
-	{
-        return null;
+        // Debug
+        if (SoundNotFound && SourceSoundNotFound)
+        {
+            Debug.LogError("HolyAudioManager|Sounds&SourceSounds|SetLooping: " + clipName + " does NOT exist!");
+        }
+        else if (DidExecuteSound && DidExecuteSourceSound)
+        {
+            Debug.LogWarning("HolyAudioManager|Sounds&SourceSounds|SetLooping: A clip has been found in both Sounds and SourceSounds");
+        }
+
+        DidExecuteSound = false;
+        DidExecuteSourceSound = false;
+        SoundNotFound = false;
+        SourceSoundNotFound = false;
     }
+
+    public float GetSoundClipLength(string clipName)
+    {
+        if (SoundDict.TryGetValue(clipName, out soundTemp))
+        {
+            return soundTemp.Source.clip.length;
+        }
+        else
+        {
+            Debug.LogError("HolyAudioManager|GetSoundClipLength: " + clipName + " was not found!");
+            return -999.9f;
+        }
+    }
+
+    public float GetSourceSoundClipLength(string clipName)
+    {
+        if (SourceSoundDict.TryGetValue(clipName, out sourceSoundTemp))
+        {
+            return sourceSoundTemp.Source.clip.length;
+        }
+        else
+        {
+            Debug.LogError("HolyAudioManager|GetSourceSoundClipLength: " + clipName + " was not found!");
+            return -999.9f;
+        }
+    }
+
 
 
     // Get MixerGroup(s)
@@ -856,4 +924,5 @@ public class HolyLocalAudio : MonoBehaviour
             yield return new WaitForSeconds(source.clip.length);
         }
     }
+
 }

@@ -11,7 +11,8 @@ public static class HolyAudioSaver
 		BinaryFormatter formatter = new BinaryFormatter();
 		string path = Application.persistentDataPath + filePath;
 		
-		Debug.Log("HolyAudioSaver|SavePath: \"" + path + "\"");
+		// * Enable this if you want to see the full path of the file
+		// Debug.Log("HolyAudioSaver|SavePath: \"" + path + "\"");
 		
 		FileStream stream = new FileStream(path, FileMode.Create);
 		
